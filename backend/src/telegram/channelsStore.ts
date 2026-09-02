@@ -57,14 +57,16 @@ export function loadStoredChannels(userId?: number): StoredChannel[] {
   const all = readAllChannels();
 
   if (userId) {
-    // Return channels owned by this user
     const userChannels = all.filter(c => c.ownerId === userId);
-    if (userChannels.length > 0) {
-      return userChannels;
+    
+    // Check if Durov is in userChannels
+    const hasDurov = userChannels.some(c => c.id === '@durov' || c.username?.toLowerCase() === 'durov');
+    if (!hasDurov) {
+      return [...userChannels, ...DEFAULT_CHANNELS];
     }
+    return userChannels;
   }
 
-  // If user has no added channels or not authenticated, return default channel (Pavel Durov)
   return DEFAULT_CHANNELS;
 }
 
