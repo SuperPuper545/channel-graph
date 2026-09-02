@@ -1,5 +1,29 @@
 [
   {
+    "id": "@custom_test",
+    "title": "Tests",
+    "username": "custom_test",
+    "avatar": "",
+    "subscribers": 12500,
+    "category": "Новости и Медиа",
+    "isVerified": false,
+    "isAdmin": false,
+    "isLive": true,
+    "addedAt": "2026-09-02T15:50:23.637Z"
+  },
+  {
+    "id": "@-1002885280199",
+    "title": "Telegram – a new era of messaging",
+    "username": "-1002885280199",
+    "avatar": "https://telegram.org/img/t_logo_2x.png",
+    "subscribers": 12500,
+    "category": "Новости и Медиа",
+    "isVerified": false,
+    "isAdmin": false,
+    "isLive": true,
+    "addedAt": "2026-09-02T15:48:49.323Z"
+  },
+  {
     "id": "@durov",
     "title": "Pavel Durov",
     "username": "durov",
