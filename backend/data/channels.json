@@ -1,0 +1,71 @@
+[
+  {
+    "id": "@durov",
+    "title": "Pavel Durov",
+    "username": "durov",
+    "avatar": "https://api.telegram.org/file/bot8640087859:AAGOpuHEdtYjYkeQfeABJUu83N7u0I_cVzE/profile_photos/file_3.jpg",
+    "subscribers": 10926791,
+    "category": "Новости и Медиа",
+    "isVerified": false,
+    "isAdmin": true,
+    "isLive": true,
+    "addedAt": "2026-09-02T14:02:01.447Z"
+  },
+  {
+    "id": "-1002416194304",
+    "title": "Топор. Экономика.",
+    "username": "ecotopor",
+    "avatar": "https://api.telegram.org/file/bot8640087859:AAGOpuHEdtYjYkeQfeABJUu83N7u0I_cVzE/profile_photos/file_1.jpg",
+    "subscribers": 1189813,
+    "category": "Telegram Канал",
+    "isVerified": false,
+    "isAdmin": true,
+    "isLive": true,
+    "addedAt": "2026-09-02T09:44:39.490Z"
+  },
+  {
+    "id": "@telegram",
+    "title": "Telegram News",
+    "username": "telegram",
+    "avatar": "https://api.telegram.org/file/bot8640087859:AAGOpuHEdtYjYkeQfeABJUu83N7u0I_cVzE/profile_photos/file_0.jpg",
+    "subscribers": 9659048,
+    "category": "Новости и Медиа",
+    "isVerified": false,
+    "isAdmin": true,
+    "isLive": true,
+    "addedAt": "2026-09-02T12:56:59.830Z"
+  },
+  {
+    "id": "-1001928374650",
+    "title": "Digital Marketing & Tech Insights",
+    "username": "digital_tech_pro",
+    "avatar": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80",
+    "subscribers": 48250,
+    "category": "Маркетинг и Бизнес",
+    "isVerified": true,
+    "isAdmin": true,
+    "isLive": false
+  },
+  {
+    "id": "-1001837465019",
+    "title": "Crypto & Web3 Pulse",
+    "username": "cryptopulse_hub",
+    "avatar": "https://images.unsplash.com/photo-1622979135225-d2ba269bc1df?w=150&auto=format&fit=crop&q=80",
+    "subscribers": 114800,
+    "category": "Криптовалюты и Финансы",
+    "isVerified": false,
+    "isAdmin": true,
+    "isLive": false
+  },
+  {
+    "id": "-1001746501928",
+    "title": "Frontend & AI Developer Hub",
+    "username": "dev_frontend_ai",
+    "avatar": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=150&auto=format&fit=crop&q=80",
+    "subscribers": 29400,
+    "category": "IT и Разработка",
+    "isVerified": true,
+    "isAdmin": true,
+    "isLive": false
+  }
+]

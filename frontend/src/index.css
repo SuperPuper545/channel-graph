@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --tg-theme-bg-color: #ffffff;
+  --tg-theme-secondary-bg-color: #f3f4f6;
+  --tg-theme-text-color: #111827;
+  --tg-theme-hint-color: #6b7280;
+  --tg-theme-link-color: #2563eb;
+  --tg-theme-button-color: #2563eb;
+  --tg-theme-button-text-color: #ffffff;
+  --tg-theme-card-bg: #ffffff;
+  --tg-theme-border-color: #e5e7eb;
+}
+
+.dark {
+  --tg-theme-bg-color: #0f172a;
+  --tg-theme-secondary-bg-color: #020617;
+  --tg-theme-text-color: #f8fafc;
+  --tg-theme-hint-color: #94a3b8;
+  --tg-theme-link-color: #38bdf8;
+  --tg-theme-button-color: #38bdf8;
+  --tg-theme-button-text-color: #0f172a;
+  --tg-theme-card-bg: #1e293b;
+  --tg-theme-border-color: #334155;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--tg-theme-secondary-bg-color);
+  color: var(--tg-theme-text-color);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Telegram Safe Area Insets for iOS Notch, Desktop & Android */
+.safe-area-top {
+  padding-top: max(env(safe-area-inset-top, 0px), 14px);
+}
+
+.safe-area-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom, 16px), 20px);
+}
+
+/* Glassmorphism Card Style */
+.stat-card {
+  background-color: var(--tg-theme-card-bg);
+  border: 1px solid var(--tg-theme-border-color);
+  border-radius: 1rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.08);
+}
+
+/* Smooth custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--tg-theme-hint-color);
+  opacity: 0.3;
+  border-radius: 4px;
+}
+
+/* Custom glowing badges */
+.badge-glow {
+  box-shadow: 0 0 15px rgba(51, 144, 236, 0.35);
+}

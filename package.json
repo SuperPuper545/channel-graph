@@ -1,0 +1,26 @@
+{
+  "name": "statify-telegram-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Statify - Telegram Mini App for Channel Analytics and Media Kit Reporting",
+  "scripts": {
+    "dev:backend": "npm.cmd --prefix backend run dev",
+    "dev:frontend": "npm.cmd --prefix frontend run dev",
+    "build:backend": "npm.cmd --prefix backend run build",
+    "build:frontend": "npm.cmd --prefix frontend run build",
+    "build": "npm.cmd run build:backend && npm.cmd run build:frontend"
+  },
+  "keywords": [
+    "telegram",
+    "mini-app",
+    "analytics",
+    "bot",
+    "tma",
+    "statify"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "localtunnel": "^2.0.2"
+  }
+}

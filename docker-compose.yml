@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: channel-graph-app
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - BOT_TOKEN=8640087859:AAGOpuHEdtYjYkeQfeABJUu83N7u0I_cVzE
+      - FRONTEND_URL=https://your-domain.com
+      - TELEGRAM_API_ID=33733051
+      - TELEGRAM_API_HASH=5addafae71e7255058328380b155ce93
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
