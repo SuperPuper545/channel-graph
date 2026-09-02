@@ -99,8 +99,21 @@ export function setupTelegramBot(token: string, frontendUrl: string): Bot {
 
     if (status === 'administrator' || status === 'creator') {
       let membersCount = 0;
+      let avatar = `https://api.dicebear.com/7.x/identicon/svg?seed=${chat.id}`;
       try {
         membersCount = await ctx.api.getChatMemberCount(chat.id);
+      } catch {
+        // ignore
+      }
+
+      try {
+        const fullChat = await ctx.api.getChat(chat.id);
+        if (fullChat.photo?.big_file_id) {
+          const file = await ctx.api.getFile(fullChat.photo.big_file_id);
+          if (file.file_path) {
+            avatar = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
+          }
+        }
       } catch {
         // ignore
       }
@@ -109,7 +122,7 @@ export function setupTelegramBot(token: string, frontendUrl: string): Bot {
         id: chat.id.toString(),
         title: chat.title || 'Подключенный канал',
         username: chat.username || `channel_${Math.abs(chat.id)}`,
-        avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=${chat.id}`,
+        avatar,
         subscribers: membersCount || 1000,
         category: 'Telegram Канал',
         isVerified: false,

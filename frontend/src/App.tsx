@@ -131,11 +131,13 @@ export function App() {
     }
   }, [user]);
 
-  // Fetch Channels per user
-  const { data: channels = FALLBACK_CHANNELS, isLoading: isChannelsLoading } = useQuery({
+  // Fetch Channels per user with auto-refresh
+  const { data: channels = FALLBACK_CHANNELS, isLoading: isChannelsLoading, refetch: refetchChannels } = useQuery({
     queryKey: ['channels', user?.id],
     queryFn: () => fetchChannels(user?.id),
-    staleTime: 60000
+    staleTime: 3000,
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true
   });
 
   // Sync selectedChannel with server list if available
@@ -244,6 +246,7 @@ export function App() {
                 setIsAddChannelOpen(true);
                 hapticImpact('light');
               }}
+              onRefreshChannels={refetchChannels}
             />
           </div>
 

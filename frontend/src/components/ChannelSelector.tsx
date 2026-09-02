@@ -23,6 +23,7 @@ interface ChannelSelectorProps {
   onSelectChannel: (channel: ChannelOverview) => void;
   onDeleteChannel: (channelId: string) => void;
   onOpenAddChannel: () => void;
+  onRefreshChannels?: () => void;
 }
 
 export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
@@ -30,7 +31,8 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
   selectedChannel,
   onSelectChannel,
   onDeleteChannel,
-  onOpenAddChannel
+  onOpenAddChannel,
+  onRefreshChannels
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'my' | 'viewed'>('my');
@@ -42,9 +44,10 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
   const myChannels = channels.filter(c => c.isAdmin);
   const viewedChannels = channels.filter(c => !c.isAdmin);
 
-  // Auto-switch tab to current channel type on open
+  // Auto-switch tab to current channel type on open & trigger refresh
   useEffect(() => {
     if (isOpen) {
+      onRefreshChannels?.();
       if (selectedChannel.isAdmin) {
         setActiveTab('my');
       } else {
