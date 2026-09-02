@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import axios from 'axios';
 import { Bot } from 'grammy';
 import { validateTelegramInitData } from '../auth/validateInitData.js';
-import { loadStoredChannels, deleteStoredChannel } from '../telegram/channelsStore.js';
+import { loadStoredChannels, deleteStoredChannel, addOrUpdateChannel } from '../telegram/channelsStore.js';
 import { getLiveChannelAnalytics, fetchLiveTelegramChannel } from '../telegram/realStatsService.js';
 import { getUserProfile, isUserPro, setUserProStatus } from '../telegram/usersStore.js';
 import { createTelegramStarsInvoice } from '../telegram/bot.js';
