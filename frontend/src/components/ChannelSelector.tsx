@@ -365,7 +365,6 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
             <div className="pt-3 border-t border-tg-border bg-tg-card flex-shrink-0">
               <button
                 onClick={() => {
-                  setIsOpen(false);
                   onOpenAddChannel();
                 }}
                 className="w-full py-2.5 px-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-bold text-blue-500 bg-blue-500/10 hover:bg-blue-500/15 border border-blue-500/20 transition-all"

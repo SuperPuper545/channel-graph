@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Chart as ChartJS,
   ArcElement,
   Tooltip,
-  Legend
+  Legend,
+  Plugin
 } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
 import { ActivityBreakdown as ActivityType } from '../types';
@@ -18,8 +19,9 @@ interface ActivityBreakdownProps {
 
 export const ActivityBreakdown: React.FC<ActivityBreakdownProps> = ({ data, colorScheme }) => {
   const isDark = colorScheme === 'dark';
+  const totalInteractions = data.reactions + data.shares + data.comments;
 
-  const chartData = {
+  const chartData = useMemo(() => ({
     labels: ['Реакции', 'Репосты', 'Комментарии'],
     datasets: [
       {
@@ -27,12 +29,35 @@ export const ActivityBreakdown: React.FC<ActivityBreakdownProps> = ({ data, colo
         backgroundColor: ['#ec4899', '#3b82f6', '#10b981'],
         borderColor: isDark ? '#1e293b' : '#ffffff',
         borderWidth: 2,
-        hoverOffset: 4
+        hoverOffset: 6
       }
     ]
-  };
+  }), [data, isDark]);
 
-  const options = {
+  const centerTextPlugin: Plugin<'doughnut'> = useMemo(() => ({
+    id: 'centerText',
+    beforeDraw: (chart) => {
+      const { width, height, ctx } = chart;
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // Label "Всего"
+      ctx.font = 'bold 11px system-ui, -apple-system, sans-serif';
+      ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
+      ctx.fillText('Всего', width / 2, height / 2 - 9);
+
+      // Number
+      const formatted = totalInteractions > 1000 ? `${(totalInteractions / 1000).toFixed(1)}k` : String(totalInteractions);
+      ctx.font = 'bold 15px system-ui, -apple-system, sans-serif';
+      ctx.fillStyle = isDark ? '#f8fafc' : '#0f172a';
+      ctx.fillText(formatted, width / 2, height / 2 + 9);
+
+      ctx.restore();
+    }
+  }), [isDark, totalInteractions]);
+
+  const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     cutout: '72%',
@@ -46,13 +71,22 @@ export const ActivityBreakdown: React.FC<ActivityBreakdownProps> = ({ data, colo
         bodyColor: isDark ? '#94a3b8' : '#475569',
         borderColor: isDark ? '#334155' : '#e2e8f0',
         borderWidth: 1,
-        padding: 8,
-        cornerRadius: 8
+        padding: 10,
+        cornerRadius: 10,
+        displayColors: true,
+        boxPadding: 4,
+        zIndex: 9999,
+        callbacks: {
+          label: (context: any) => {
+            const label = context.label || '';
+            const val = context.raw || 0;
+            const percent = totalInteractions > 0 ? Math.round((val / totalInteractions) * 100) : 0;
+            return ` ${label}: ${val.toLocaleString('ru-RU')} (${percent}%)`;
+          }
+        }
       }
     }
-  };
-
-  const totalInteractions = data.reactions + data.shares + data.comments;
+  }), [isDark, totalInteractions]);
 
   return (
     <div id="activity-chart-block" className="stat-card p-4 space-y-4">
@@ -67,15 +101,9 @@ export const ActivityBreakdown: React.FC<ActivityBreakdownProps> = ({ data, colo
       </div>
 
       <div className="flex flex-col sm:flex-row items-center gap-6">
-        {/* Doughnut Chart */}
+        {/* Doughnut Chart with native canvas center text & top-layered tooltips */}
         <div className="relative w-36 h-36 flex-shrink-0 flex items-center justify-center">
-          <Doughnut data={chartData} options={options} />
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-xs font-bold text-tg-hint">Всего</span>
-            <span className="text-sm font-black text-tg-text">
-              {totalInteractions > 1000 ? `${(totalInteractions / 1000).toFixed(1)}k` : totalInteractions}
-            </span>
-          </div>
+          <Doughnut data={chartData} options={options} plugins={[centerTextPlugin]} />
         </div>
 
         {/* Progress Bars & Legend */}

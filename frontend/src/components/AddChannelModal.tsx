@@ -17,7 +17,7 @@ export const AddChannelModal: React.FC<AddChannelModalProps> = ({
   const botUsername = 'StatVisualBot';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
       <div className="stat-card bg-tg-card max-w-sm w-full p-4 sm:p-5 space-y-3.5 border border-tg-border shadow-2xl rounded-3xl relative">
         <button
           onClick={onClose}
