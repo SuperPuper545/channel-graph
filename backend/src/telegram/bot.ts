@@ -13,6 +13,28 @@ export function setupTelegramBot(token: string, frontendUrl: string): Bot {
     console.error('⚠️ [Telegram Bot Error]:', err.message);
   });
 
+  // Automatically configure Bot Commands in Telegram quick access menu
+  bot.api.setMyCommands([
+    { command: 'start', description: '🚀 Запустить Channel Graph' },
+    { command: 'app', description: '📊 Открыть WebApp аналитику' },
+    { command: 'add', description: '📢 Подключить свой канал' },
+    { command: 'pro', description: '⭐ PRO-подписка за Stars' },
+    { command: 'help', description: 'ℹ️ Инструкция и возможности' }
+  ]).then(() => {
+    console.log('✅ [Telegram Bot] Quick Access Commands registered successfully');
+  }).catch((e) => {
+    console.warn('⚠️ [Telegram Bot] Failed to set commands:', e.message);
+  });
+
+  // Set Bot Description (shown on empty chat before /start)
+  bot.api.setMyDescription(
+    '🚀 Channel Graph — сервис глубокой аналитики Telegram-каналов и генерации медиакитов для рекламодателей.\n\n📊 Реальные охваты, просмотры, динамика подписчиков и расчет стоимости рекламы.'
+  ).catch(() => {});
+
+  bot.api.setMyShortDescription(
+    '📊 Профессиональная аналитика Telegram-каналов и медиакиты.'
+  ).catch(() => {});
+
   // Automatically configure Menu Button in Telegram client
   bot.api.setChatMenuButton({
     menu_button: {
@@ -149,38 +171,55 @@ export function setupTelegramBot(token: string, frontendUrl: string): Bot {
     }
   });
 
-  bot.command('start', async (ctx) => {
+  bot.command(['start', 'app'], async (ctx) => {
     console.log(`📨 [Telegram Bot] /start from ${ctx.from?.username || ctx.from?.id}, URL=${frontendUrl}`);
 
     const keyboard = new InlineKeyboard()
-      .webApp('📊 Открыть Channel Graph', frontendUrl)
+      .webApp('🚀 Запустить Channel Graph', frontendUrl)
       .row()
-      .url('📢 Добавить бота в канал', `https://t.me/${ctx.me.username}?startchannel=botstart&admin=post_messages+edit_messages+delete_messages`);
+      .url('📢 Добавить бота в канал', `https://t.me/${ctx.me.username}?startchannel=botstart&admin=post_messages+edit_messages+delete_messages`)
+      .row()
+      .webApp('⭐ PRO-тариф (Stars)', frontendUrl);
 
     const name = ctx.from?.first_name ? ctx.from.first_name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'друг';
 
     const welcomeText = `👋 Привет, <b>${name}</b>!
+ 
+🚀 <b>Channel Graph</b> — профессиональный сервис глубокой аналитики Telegram-каналов и генерации медиакитов для рекламодателей.
 
-🚀 <b>Channel Graph</b> — это профессиональный сервис аналитики Telegram-каналов и генерации медиакитов для рекламодателей.
-
-✨ <b>Возможности сервиса:</b>
-• 📈 Интерактивные графики прироста и оттока подписчиков
-• 🔥 Расчет ERR (уровень вовлеченности) и охвата
-• ⏱ Распределение просмотров по часам и дням
-• 📑 Экспорт брендированных PDF и PNG медиакитов для рекламодателей
-• 💎 Анализ любых каналов по @username
-• ⭐ Оплата PRO-функций за Telegram Stars
+✨ <b>Возможности:</b>
+• 📈 Честные графики динамики подписчиков и просмотров
+• 🔥 Расчет ERR (вовлеченность) и среднего охвата
+• ⏱ Распределение активности по часам и дням
+• 📑 Экспорт PDF и PNG медиакитов с вашим прайсом
+• 💎 Поиск и анализ любых каналов по @username
+• ⭐ PRO-функции за Telegram Stars
 
 💡 <b>Как подключить свой канал:</b>
-1. Добавьте бота <b>@${ctx.me.username}</b> в администраторы вашего канала.
-2. Либо отправьте <b>@username</b> публичного канала прямо в этот чат!
+Нажмите кнопку <b>«📢 Добавить бота в канал»</b> ниже или отправьте <b>@username</b> любого публичного канала прямо в чат!
 
-Нажмите кнопку ниже, чтобы запустить приложение!`;
+Нажмите кнопку ниже, чтобы открыть дашборд 👇`;
 
     await ctx.reply(welcomeText, {
       parse_mode: 'HTML',
       reply_markup: keyboard
     });
+  });
+
+  bot.command('add', async (ctx) => {
+    const keyboard = new InlineKeyboard()
+      .url('📢 Добавить бота в свой канал', `https://t.me/${ctx.me.username}?startchannel=botstart&admin=post_messages+edit_messages+delete_messages`);
+
+    await ctx.reply(
+      `📢 <b>Подключение вашего Telegram-канала:</b>\n\n` +
+      `1. Нажмите кнопку ниже, чтобы добавить бота <b>@${ctx.me.username}</b> в администраторы.\n` +
+      `2. Выдайте боту базовые права для отслеживания статистики.\n` +
+      `3. Канал мгновенно появится в вашем приложении Channel Graph!`,
+      {
+        parse_mode: 'HTML',
+        reply_markup: keyboard
+      }
+    );
   });
 
   // Handle user sending @username in private chat
