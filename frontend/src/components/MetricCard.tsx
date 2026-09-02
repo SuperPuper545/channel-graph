@@ -41,7 +41,13 @@ export const MetricCard: React.FC<MetricCardProps> = ({ data, icon }) => {
             {isUp && <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />}
             {isDown && <TrendingDown className="w-2.5 h-2.5 sm:w-3 sm:h-3" />}
             {!isUp && !isDown && <Minus className="w-2.5 h-2.5 sm:w-3 sm:h-3" />}
-            <span>{data.change > 0 ? `+${data.change}%` : `${data.change}%`}</span>
+            <span>
+              {(() => {
+                const num = typeof data.change === 'number' ? Number(data.change.toFixed(1)) : parseFloat(String(data.change)) || 0;
+                const str = Number.isInteger(num) ? String(num) : num.toFixed(1);
+                return num > 0 ? `+${str}%` : `${str}%`;
+              })()}
+            </span>
           </span>
 
           <span className="text-[10px] sm:text-[11px] text-tg-hint truncate">{data.changeLabel}</span>

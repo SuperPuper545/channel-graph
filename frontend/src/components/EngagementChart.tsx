@@ -49,10 +49,10 @@ export const EngagementChart: React.FC<EngagementChartProps> = ({
   const errValues = growthData.map((_, idx) => {
     const wave = Math.sin(idx * 0.7) * 2.2;
     const jitter = ((idx * 17) % 7) * 0.35 - 1.2;
-    return Math.max(3.5, parseFloat((errRate + wave + jitter).toFixed(1)));
+    return Math.max(1.0, Number((errRate + wave + jitter).toFixed(1)));
   });
 
-  const avgErr = (errValues.reduce((a, b) => a + b, 0) / errValues.length).toFixed(1);
+  const avgErr = errValues.length > 0 ? (errValues.reduce((a, b) => a + b, 0) / errValues.length).toFixed(1) : errRate.toFixed(1);
 
   const handleZoomIn = () => {
     if (chartRef.current) chartRef.current.zoom(1.25);

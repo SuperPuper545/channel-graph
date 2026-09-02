@@ -63,7 +63,7 @@ export const TopPosts: React.FC<TopPostsProps> = ({ posts, onOpenLink }) => {
 
               <div className="flex items-center gap-2">
                 <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-500 font-bold text-xs">
-                  {post.err}% ERR
+                  {typeof post.err === 'number' ? (Number.isInteger(post.err) ? post.err : post.err.toFixed(1)) : post.err}% ERR
                 </span>
 
                 <button
