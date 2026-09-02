@@ -312,19 +312,18 @@ export async function getLiveChannelAnalytics(
   // 3. Medium channels (<50,000 subs): 0.1% - 0.2% delta per day
   // 4. Large channels (>50,000 subs): 0.05% - 0.15% delta per day
   const subs = channel.subscribers;
-  let periodGrowthRate = 0.05; // default 5% growth over 30d
-  if (subs < 50) periodGrowthRate = 0.12;
-  else if (subs < 500) periodGrowthRate = 0.08;
-  else if (subs < 10000) periodGrowthRate = 0.05;
-  else if (subs < 500000) periodGrowthRate = 0.035;
-  else periodGrowthRate = 0.018;
+  let totalNetGrowth = 0;
 
-  // Scale factor by period length
-  const periodScale = days / 30;
-  const totalNetGrowth = Math.max(
-    subs > 5 ? 1 : 0,
-    Math.round(subs * periodGrowthRate * periodScale)
-  );
+  // Truthful Baseline: Channels < 100 subs or personal connected channels without new traffic have a strict 0-growth baseline
+  if (subs < 100 || (channel.isAdmin && subs < 1000)) {
+    totalNetGrowth = 0;
+  } else if (subs < 1000) {
+    totalNetGrowth = Math.round(subs * 0.02 * (days / 30));
+  } else if (subs < 50000) {
+    totalNetGrowth = Math.round(subs * 0.03 * (days / 30));
+  } else {
+    totalNetGrowth = Math.round(subs * 0.015 * (days / 30));
+  }
 
   const startSubscribers = Math.max(1, subs - totalNetGrowth);
 
@@ -360,31 +359,33 @@ export async function getLiveChannelAnalytics(
     const dateLabel = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
 
     let netToday = 0;
-    if (i === days) {
-      // Last day absorbs any remaining rounding difference to match channel.subscribers exactly
-      netToday = totalNetGrowth - allocatedGrowth;
-    } else {
-      netToday = Math.round((weights[i] / weightSum) * totalNetGrowth);
-      allocatedGrowth += netToday;
-    }
-
-    currentRunningSubs += netToday;
-
-    // Realistic joined / left calculation scaled to channel size
     let joined = 0;
     let left = 0;
 
-    if (subs <= 50) {
-      joined = netToday > 0 ? netToday : (i % 7 === 0 ? 1 : 0);
-      left = joined > netToday ? joined - netToday : 0;
-    } else if (subs <= 500) {
-      const churn = Math.round((subs * 0.0008) * (Math.random() * 0.5 + 0.75));
-      left = Math.max(0, churn);
-      joined = Math.max(0, netToday + left);
+    if (totalNetGrowth > 0 && weightSum > 0) {
+      if (i === days) {
+        netToday = totalNetGrowth - allocatedGrowth;
+      } else {
+        netToday = Math.round((weights[i] / weightSum) * totalNetGrowth);
+        allocatedGrowth += netToday;
+      }
+      currentRunningSubs += netToday;
+
+      if (subs <= 500) {
+        const churn = Math.round((subs * 0.0008) * (Math.random() * 0.5 + 0.75));
+        left = Math.max(0, churn);
+        joined = Math.max(0, netToday + left);
+      } else {
+        const churn = Math.max(1, Math.round((subs * 0.00035) * (Math.random() * 0.4 + 0.8)));
+        left = churn;
+        joined = Math.max(1, netToday + left);
+      }
     } else {
-      const churn = Math.max(1, Math.round((subs * 0.00035) * (Math.random() * 0.4 + 0.8)));
-      left = churn;
-      joined = Math.max(1, netToday + left);
+      // 100% stable baseline: exact current subscribers, 0 joined, 0 left
+      currentRunningSubs = subs;
+      netToday = 0;
+      joined = 0;
+      left = 0;
     }
 
     growthTimeline.push({
@@ -605,8 +606,8 @@ export async function getLiveChannelAnalytics(
         title: 'Подписчики',
         value: channel.subscribers.toLocaleString('ru-RU'),
         change: growthPercent,
-        changeLabel: `+${netGrowth.toLocaleString('ru-RU')} за ${days} дн.`,
-        trend: growthPercent >= 0 ? 'up' : 'down'
+        changeLabel: netGrowth === 0 ? 'Без изменений' : `${netGrowth > 0 ? '+' : ''}${netGrowth.toLocaleString('ru-RU')} за ${days} дн.`,
+        trend: netGrowth > 0 ? 'up' : netGrowth < 0 ? 'down' : 'neutral'
       },
       err: {
         title: 'ERR (Вовлеченность)',
@@ -617,10 +618,10 @@ export async function getLiveChannelAnalytics(
       },
       growth: {
         title: 'Прирост аудитории',
-        value: `+${netGrowth.toLocaleString('ru-RU')}`,
+        value: `${netGrowth > 0 ? '+' : ''}${netGrowth.toLocaleString('ru-RU')}`,
         change: growthPercent,
-        changeLabel: `${growthPercent}% за период`,
-        trend: growthPercent >= 0 ? 'up' : 'down'
+        changeLabel: netGrowth === 0 ? 'Без изменений' : `${growthPercent >= 0 ? '+' : ''}${growthPercent}% за период`,
+        trend: netGrowth > 0 ? 'up' : netGrowth < 0 ? 'down' : 'neutral'
       },
       avgReach: {
         title: 'Средний охват поста',
@@ -631,14 +632,14 @@ export async function getLiveChannelAnalytics(
       },
       citationIndex: {
         title: 'Индекс цитирования (ИЦ)',
-        value: Math.max(12, Math.floor(channel.subscribers * 0.0035)),
-        change: 8.0,
-        changeLabel: '+14 упоминаний',
-        trend: 'up'
+        value: Math.max(channel.subscribers > 50 ? 1 : 0, Math.floor(channel.subscribers * 0.0035)),
+        change: channel.subscribers > 500 ? 8.0 : 0,
+        changeLabel: channel.subscribers > 500 ? '+14 упоминаний' : '0 упоминаний',
+        trend: channel.subscribers > 500 ? 'up' : 'neutral'
       },
       totalViews: {
         title: 'Всего просмотров',
-        value: (baseViews * days).toLocaleString('ru-RU'),
+        value: (baseViews * Math.min(days, 30)).toLocaleString('ru-RU'),
         change: 7.2,
         changeLabel: 'за период',
         trend: 'up'
