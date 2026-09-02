@@ -166,7 +166,7 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
             </div>
 
             {/* Live Search Input Bar */}
-            <div className="py-3 flex-shrink-0 space-y-1.5">
+            <div className="py-2.5 flex-shrink-0 space-y-1.5">
               <form onSubmit={handleSearch} className="relative">
                 <input
                   type="text"
@@ -175,54 +175,52 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
                     setSearchQuery(e.target.value);
                     setSearchError(null);
                   }}
-                  placeholder="Анализ любого канала по @username или ссылке..."
-                  className="w-full pl-9 pr-18 py-2.5 rounded-xl bg-tg-secondaryBg border border-tg-border text-xs text-tg-text placeholder-tg-hint focus:outline-none focus:border-blue-500 transition-colors"
+                  placeholder="Поиск по @username..."
+                  className="w-full pl-8 pr-16 py-2 rounded-xl bg-tg-secondaryBg border border-tg-border text-xs text-tg-text placeholder-tg-hint focus:outline-none focus:border-blue-500 transition-colors"
                 />
-                <Search className="w-4 h-4 text-tg-hint absolute left-3 top-3" />
+                <Search className="w-3.5 h-3.5 text-tg-hint absolute left-2.5 top-3" />
                 <button
                   type="submit"
                   disabled={isSearching || !searchQuery.trim()}
-                  className="absolute right-1.5 top-1.5 bottom-1.5 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white text-xs font-bold transition-all shadow-sm shadow-blue-600/20"
+                  className="absolute right-1 top-1 bottom-1 px-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white text-[11px] font-bold transition-all shadow-sm shadow-blue-600/20"
                 >
                   {isSearching ? '...' : 'Найти'}
                 </button>
               </form>
 
               {searchError && (
-                <div className="text-[11px] text-rose-500 font-semibold px-2.5 py-1.5 bg-rose-500/10 rounded-xl">
+                <div className="text-[11px] text-rose-500 font-semibold px-2 py-1 bg-rose-500/10 rounded-lg">
                   {searchError}
                 </div>
               )}
             </div>
 
-            {/* Two Tabs Switcher */}
-            <div className="flex p-1 rounded-2xl bg-tg-secondaryBg border border-tg-border mb-3 flex-shrink-0">
+            {/* Two Tabs Switcher (Mobile Responsive) */}
+            <div className="flex p-1 rounded-2xl bg-tg-secondaryBg border border-tg-border mb-2.5 flex-shrink-0 gap-1">
               <button
                 onClick={() => setActiveTab('my')}
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-1.5 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap min-w-0 ${
                   activeTab === 'my'
                     ? 'bg-tg-card text-blue-500 shadow-sm border border-tg-border'
                     : 'text-tg-hint hover:text-tg-text'
                 }`}
               >
-                <Bot className="w-3.5 h-3.5" />
-                <span>Мои каналы</span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-blue-500/10 text-blue-500 font-extrabold">
+                <span className="truncate">Мои каналы</span>
+                <span className="text-[9.5px] px-1.5 py-0.2 rounded-full bg-blue-500/10 text-blue-500 font-extrabold flex-shrink-0">
                   {myChannels.length}
                 </span>
               </button>
 
               <button
                 onClick={() => setActiveTab('viewed')}
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-1.5 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap min-w-0 ${
                   activeTab === 'viewed'
                     ? 'bg-tg-card text-blue-500 shadow-sm border border-tg-border'
                     : 'text-tg-hint hover:text-tg-text'
                 }`}
               >
-                <Eye className="w-3.5 h-3.5" />
-                <span>Просматриваемые</span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-blue-500/10 text-blue-500 font-extrabold">
+                <span className="truncate">Просмотр</span>
+                <span className="text-[9.5px] px-1.5 py-0.2 rounded-full bg-blue-500/10 text-blue-500 font-extrabold flex-shrink-0">
                   {viewedChannels.length}
                 </span>
               </button>
@@ -230,28 +228,13 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
 
             {/* Tab 1: My Channels (Admin Bot) */}
             {activeTab === 'my' && (
-              <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[160px] max-h-[260px]">
+              <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[140px] max-h-[260px]">
                 {myChannels.length === 0 ? (
-                  <div className="p-4 rounded-2xl bg-tg-secondaryBg/80 border border-tg-border text-center space-y-2.5 my-1">
-                    <div className="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center mx-auto">
-                      <Bot className="w-5 h-5" />
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs font-bold text-tg-text">Нет подключенных каналов</p>
-                      <p className="text-[11px] text-tg-hint max-w-xs mx-auto leading-relaxed">
-                        Добавьте бота в администраторы вашего канала, чтобы он появился здесь автоматически.
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setIsOpen(false);
-                        onOpenAddChannel();
-                      }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-600/20 transition-all"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Подключить свой канал</span>
-                    </button>
+                  <div className="p-3.5 sm:p-4 rounded-2xl bg-tg-secondaryBg/80 border border-tg-border text-center space-y-1.5 my-2">
+                    <p className="text-xs font-bold text-tg-text">Нет подключенных каналов</p>
+                    <p className="text-[11px] text-tg-hint max-w-xs mx-auto leading-relaxed">
+                      Чтобы подключить свой личный канал, добавьте бота в администраторы по инструкции на кнопке снизу 👇
+                    </p>
                   </div>
                 ) : (
                   myChannels.map((channel) => {
