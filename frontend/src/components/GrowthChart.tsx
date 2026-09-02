@@ -195,15 +195,27 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({ data, colorScheme }) =
         grid: {
           color: gridColor
         },
+        suggestedMin: mode === 'total' && (data.length > 0 && Math.min(...data.map(d => d.subscribers)) === Math.max(...data.map(d => d.subscribers)))
+          ? Math.max(0, Math.min(...data.map(d => d.subscribers)) - 3)
+          : undefined,
+        suggestedMax: mode === 'total' && (data.length > 0 && Math.min(...data.map(d => d.subscribers)) === Math.max(...data.map(d => d.subscribers)))
+          ? Math.max(...data.map(d => d.subscribers)) + 3
+          : undefined,
         ticks: {
           color: textColor,
           font: { size: 10.5, weight: 'bold' },
+          precision: 0,
           callback: (value: any) => {
-            const v = Math.abs(Number(value));
-            if (v >= 1000) {
-              return `${(Number(value) / 1000).toFixed(1)}k`;
+            const num = Number(value);
+            if (!Number.isInteger(num)) return '';
+            const abs = Math.abs(num);
+            if (abs >= 1000000) {
+              return `${(num / 1000000).toFixed(1)}M`;
             }
-            return value;
+            if (abs >= 1000) {
+              return `${(num / 1000).toFixed(1)}k`;
+            }
+            return num.toLocaleString('ru-RU');
           }
         }
       }

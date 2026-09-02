@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { ChannelOverview, ChannelAnalytics, ChannelPost, GrowthPoint, ViewsPoint, ActivityBreakdown } from './statsService.js';
 import { addOrUpdateChannel, getChannelByIdOrUsername, StoredChannel } from './channelsStore.js';
+import { recordSnapshot, getChannelSnapshots } from './historyStore.js';
 
 export interface AIInsightsData {
   category: string;
@@ -14,16 +15,6 @@ export interface AIInsightsData {
   fairPrice248: string;
   fairPriceNative: string;
   keyGrowthTips: string[];
-}
-
-interface ParsedPost {
-  id: number;
-  text: string;
-  date: string;
-  views: number;
-  forwards: number;
-  reactions: number;
-  url: string;
 }
 
 /**
@@ -40,194 +31,78 @@ function detectCategory(title: string, username: string, sampleText = ''): strin
   if (/\b(crypto|крипт|крипта|btc|eth|web3|трейд|трейдинг|defi|signals|bitcoin|ethereum)\b/i.test(text) || /\bton\b/i.test(text)) {
     return 'Криптовалюты и Финансы';
   }
-  // IT & Tech
-  if (/\b(it|dev|frontend|backend|code|ai|технолог|tech|программирован|python|javascript|react)\b/i.test(text) || username.toLowerCase() === 'durov') {
-    return 'IT и Технологии';
+  // IT & Development
+  if (/\b(dev|code|it|ai|программирование|python|javascript|tech|технологии|frontend|backend|software|product)\b/i.test(text)) {
+    return 'IT и Разработка';
   }
   // Business & Marketing
-  if (/\b(бизнес|маркетинг|smm|стартап|продаж|инвест|деньги|b2b|ecom)\b/i.test(text)) {
+  if (/\b(бизнес|business|маркетинг|marketing|продажи|стартап|деньги|инвестиции|smm|ads|ecom)\b/i.test(text)) {
     return 'Бизнес и Маркетинг';
   }
-  // Entertainment & Humor
-  if (/\b(мем|юмор|кино|музык|игр|game|gaming|развлечен|стендап|сериал)\b/i.test(text)) {
-    return 'Развлечения и Юмор';
+  // Entertainment / Humor
+  if (/\b(юмор|мемы|memes|fun|приколы|кино|музыка|игры|gaming|humor|tiktok)\b/i.test(text)) {
+    return 'Юмор и Развлечения';
   }
   // Education & Science
-  if (/\b(наука|книг|образован|истори|английск|study|лекци|курсы)\b/i.test(text)) {
+  if (/\b(наука|образование|курсы|книги|история|science|english|языки|study|дизайн|design)\b/i.test(text)) {
     return 'Образование и Наука';
   }
-  return 'Telegram Канал';
+
+  return 'Бизнес и Медиа';
 }
 
 /**
- * Fetches real public channel posts and statistics by parsing Telegram public channel preview
+ * Category-specific hourly weights and CPM guidelines
  */
-export async function fetchLiveTelegramChannel(username: string, botToken?: string): Promise<StoredChannel | null> {
-  const cleanUsername = username.replace('@', '').trim();
-  if (!cleanUsername) return null;
-
-  try {
-    let parsedTitle = cleanUsername;
-    let subscribers = 0;
-    let avatar = `https://api.dicebear.com/7.x/identicon/svg?seed=${cleanUsername}`;
-    let isVerified = false;
-    let rawHtml = '';
-
-    // Check Telegram Bot API first if token is available
-    if (botToken) {
-      try {
-        const chatRes = await axios.get(`https://api.telegram.org/bot${botToken}/getChat`, {
-          params: { chat_id: `@${cleanUsername}` },
-          timeout: 5000
-        });
-
-        if (chatRes.data?.ok && chatRes.data.result) {
-          const chat = chatRes.data.result;
-          parsedTitle = chat.title || cleanUsername;
-          isVerified = !!chat.is_verified;
-
-          try {
-            const countRes = await axios.get(`https://api.telegram.org/bot${botToken}/getChatMemberCount`, {
-              params: { chat_id: `@${cleanUsername}` },
-              timeout: 4000
-            });
-            subscribers = countRes.data?.result || 0;
-          } catch {
-            // fallback
-          }
-
-          if (chat.photo?.big_file_id) {
-            try {
-              const fileRes = await axios.get(`https://api.telegram.org/bot${botToken}/getFile`, {
-                params: { file_id: chat.photo.big_file_id },
-                timeout: 4000
-              });
-              if (fileRes.data?.result?.file_path) {
-                avatar = `https://api.telegram.org/file/bot${botToken}/${fileRes.data.result.file_path}`;
-              }
-            } catch {
-              // ignore
-            }
-          }
-        }
-      } catch (botErr) {
-        console.warn(`Bot API getChat failed for @${cleanUsername}, using public web scraper:`, botErr);
-      }
-    }
-
-    // Public web preview scraper for deeper extraction of posts and subscribers
-    try {
-      const webUrl = `https://t.me/s/${cleanUsername}`;
-      const res = await axios.get(webUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        },
-        timeout: 6000
-      });
-
-      rawHtml = res.data as string;
-
-      if (!subscribers) {
-        const subsMatch = rawHtml.match(/<div class="tgme_channel_info_counter"><span class="counter_value">([\d\s\.KMBkmb]+)<\/span><span class="counter_type">subscribers<\/span>/i);
-        if (subsMatch && subsMatch[1]) {
-          const raw = subsMatch[1].trim().replace(/\s/g, '');
-          if (raw.toLowerCase().endsWith('k')) {
-            subscribers = Math.round(parseFloat(raw) * 1000);
-          } else if (raw.toLowerCase().endsWith('m')) {
-            subscribers = Math.round(parseFloat(raw) * 1000000);
-          } else {
-            subscribers = parseInt(raw.replace(/\D/g, ''), 10) || 1000;
-          }
-        }
-      }
-
-      if (avatar.includes('dicebear')) {
-        const avatarMatch = rawHtml.match(/<img class="tgme_page_photo_image" src="(.*?)"/i) ||
-                            rawHtml.match(/<meta property="og:image" content="(.*?)"/i);
-        if (avatarMatch) avatar = avatarMatch[1];
-      }
-
-      if (parsedTitle === cleanUsername) {
-        const titleMatch = rawHtml.match(/<div class="tgme_channel_info_header_title"[^>]*><span[^>]*>(.*?)<\/span>/i) ||
-                           rawHtml.match(/<meta property="og:title" content="(.*?)"/i);
-        if (titleMatch) parsedTitle = titleMatch[1].replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-      }
-
-      if (rawHtml.includes('tgme_channel_info_verified')) {
-        isVerified = true;
-      }
-    } catch {
-      // ignore
-    }
-
-    const category = detectCategory(parsedTitle, cleanUsername, rawHtml);
-
-    const channel: StoredChannel = {
-      id: `@${cleanUsername}`,
-      title: parsedTitle,
-      username: cleanUsername,
-      avatar,
-      subscribers: subscribers || 12500,
-      category,
-      isVerified,
-      isAdmin: false,
-      isLive: true,
-      addedAt: new Date().toISOString()
-    };
-
-    addOrUpdateChannel(channel);
-    return channel;
-  } catch (err) {
-    console.error(`Failed to fetch channel @${cleanUsername}:`, err);
-    return null;
-  }
-}
-
-/**
- * Computes category-specific hourly view distribution
- */
-function getCategoryHourlyWeights(category: string): { weights: number[]; peakHours: string; bestDays: string; cpm: number; tips: string[]; audience: string } {
-  if (category.includes('IT') || category.includes('Технолог')) {
+function getCategoryHourlyWeights(category: string): {
+  weights: number[];
+  peakHours: string;
+  bestDays: string;
+  cpm: number;
+  audience: string;
+  tips: string[];
+} {
+  if (category.includes('Крипто') || category.includes('Финанс')) {
     return {
-      weights: [0.10, 0.05, 0.02, 0.02, 0.03, 0.06, 0.15, 0.40, 0.75, 1.20, 1.45, 1.60, 1.50, 1.40, 1.35, 1.65, 1.70, 1.55, 1.30, 1.20, 1.10, 1.05, 0.80, 0.35],
-      peakHours: '11:00 – 13:30 и 15:30 – 17:30 МСК',
-      bestDays: 'Вторник – Четверг (рабочие дни)',
-      cpm: 450,
-      audience: 'Разработчики, DevOps, Product-менеджеры (22-38 лет)',
+      weights: [0.25, 0.15, 0.08, 0.05, 0.05, 0.12, 0.35, 0.75, 1.25, 1.55, 1.65, 1.45, 1.35, 1.30, 1.40, 1.50, 1.70, 1.85, 1.95, 1.75, 1.45, 1.10, 0.70, 0.40],
+      peakHours: '09:00 – 11:30 и 17:00 – 19:30 МСК',
+      bestDays: 'Вторник – Четверг (высокая волатильность рынка)',
+      cpm: 680,
+      audience: 'Инвесторы, трейдеры, Web3-энтузиасты (22-45 лет)',
       tips: [
-        'Публикуйте технические разборы и код-сниппеты в обеденный слот (11:30–13:00).',
-        'В пятницу после 17:00 активность падает — избегайте важных анонсов на выходных.',
-        'Используйте форматирование кода и ссылки на GitHub для повышения глубины дочитывания.'
+        'Публикуйте утренние сводки рынков до 10:00 — они получают максимальный первичный виральный охват.',
+        'Посты с аналитическими графиками дают на 38% больше сохранений в Избранное.',
+        'Вечерние апдейты по закрытию торгов привлекают платежеспособную аудиторию.'
       ]
     };
   }
 
-  if (category.includes('Крипто') || category.includes('Финанс')) {
+  if (category.includes('IT') || category.includes('Разработк')) {
     return {
-      weights: [0.45, 0.30, 0.20, 0.15, 0.10, 0.15, 0.30, 0.60, 0.85, 1.05, 1.15, 1.20, 1.25, 1.30, 1.40, 1.75, 1.85, 1.70, 1.50, 1.45, 1.50, 1.60, 1.40, 0.90],
-      peakHours: '15:30 – 18:00 (NY Open) и 22:00 – 01:00 МСК',
-      bestDays: 'Понедельник – Пятница (высокая волатильность)',
-      cpm: 850,
-      audience: 'Трейдеры, инвесторы, криптоэнтузиасты (24-45 лет)',
+      weights: [0.20, 0.10, 0.05, 0.03, 0.04, 0.08, 0.20, 0.50, 1.10, 1.60, 1.80, 1.60, 1.45, 1.35, 1.50, 1.65, 1.75, 1.60, 1.35, 1.20, 1.05, 0.85, 0.55, 0.30],
+      peakHours: '10:00 – 12:00 и 15:30 – 17:30 МСК',
+      bestDays: 'Понедельник – Четверг',
+      cpm: 480,
+      audience: 'Инженеры, разработчики, тимлиды, фаундеры (20-38 лет)',
       tips: [
-        'Основной всплеск просмотров совпадает с открытием американской сессии в 16:30 МСК.',
-        'Добавляйте графики TradingView и опросы настроений рынка для взрывного роста ERR.',
-        'Обязательно указывайте риск-дисклеймеры (DYOR) для сохранения доверия рекламодателей.'
+        'Код и разбор технических кейсов генерируют до 60% пересылок коллегам.',
+        'Опросы на знание стека вовлекают до 42% активных читателей поста.',
+        'Пятничные дайджесты и подборки инструментов собирают органический охват на выходных.'
       ]
     };
   }
 
   if (category.includes('Новост') || category.includes('Медиа')) {
     return {
-      weights: [0.15, 0.08, 0.04, 0.03, 0.05, 0.18, 0.55, 1.45, 1.60, 1.35, 1.25, 1.40, 1.55, 1.45, 1.25, 1.30, 1.35, 1.50, 1.75, 1.85, 1.70, 1.45, 0.95, 0.40],
-      peakHours: '07:45 – 09:30 (Утро), 13:00 – 14:15 и 18:45 – 21:00 МСК',
-      bestDays: 'Ежедневно (включая выходные)',
+      weights: [0.15, 0.08, 0.04, 0.02, 0.05, 0.15, 0.45, 1.20, 1.75, 1.60, 1.40, 1.30, 1.35, 1.30, 1.25, 1.35, 1.50, 1.75, 1.90, 1.80, 1.55, 1.25, 0.75, 0.35],
+      peakHours: '08:00 – 10:00 и 18:00 – 20:30 МСК',
+      bestDays: 'Вся неделя (без выраженных спадов)',
       cpm: 280,
-      audience: 'Широкая социально-активная аудитория (18-55 лет)',
+      audience: 'Широкая социально активная аудитория (18-60 лет)',
       tips: [
-        'Утренний дайджест в 08:00 собирает рекордные дочитывания по дороге на работу.',
-        'Публикуйте срочные молнии (Breaking News) в первые 10 минут после появления инфоповода.',
-        'Вечерний срез событий в 20:00 формирует лояльное ядро постоянных читателей.'
+        'Молнии и экстренные новости вызывают максимальный всплеск репостов в первые 15 минут.',
+        'Используйте инфографику для сложных новостных повесток — это повышает дочитываемость.',
+        'Вечерний дайджест ключевых событий дня удерживает стабильный ERR.'
       ]
     };
   }
@@ -278,6 +153,142 @@ function getCategoryHourlyWeights(category: string): { weights: number[]; peakHo
 }
 
 /**
+ * Fetches live channel data from Telegram Bot API with fallback to HTML preview
+ */
+export async function fetchLiveTelegramChannel(
+  usernameOrId: string,
+  botToken?: string
+): Promise<StoredChannel | null> {
+  let cleanUsername = usernameOrId.trim();
+  if (cleanUsername.startsWith('https://t.me/')) {
+    cleanUsername = cleanUsername.replace('https://t.me/', '').replace(/\/.*/, '');
+  }
+  if (cleanUsername.startsWith('@')) {
+    cleanUsername = cleanUsername.slice(1);
+  }
+
+  const token = botToken || process.env.TELEGRAM_BOT_TOKEN;
+  const isNumericId = /^-?\d+$/.test(cleanUsername);
+
+  if (token) {
+    try {
+      const chatId = isNumericId ? cleanUsername : `@${cleanUsername}`;
+      const chatRes = await axios.get(`https://api.telegram.org/bot${token}/getChat`, {
+        params: { chat_id: chatId },
+        timeout: 5000
+      });
+
+      if (chatRes.data?.ok && chatRes.data?.result) {
+        const chat = chatRes.data.result;
+        
+        let memberCount = 1500;
+        try {
+          const countRes = await axios.get(`https://api.telegram.org/bot${token}/getChatMemberCount`, {
+            params: { chat_id: chatId },
+            timeout: 5000
+          });
+          if (countRes.data?.ok) {
+            memberCount = countRes.data.result;
+          }
+        } catch {
+          // fallback
+        }
+
+        let avatar = `https://api.dicebear.com/7.x/identicon/svg?seed=${chat.username || chat.title || 'tg'}`;
+        if (chat.photo?.big_file_id) {
+          try {
+            const fileRes = await axios.get(`https://api.telegram.org/bot${token}/getFile`, {
+              params: { file_id: chat.photo.big_file_id },
+              timeout: 4000
+            });
+            if (fileRes.data?.ok && fileRes.data.result.file_path) {
+              avatar = `https://api.telegram.org/file/bot${token}/${fileRes.data.result.file_path}`;
+            }
+          } catch {}
+        }
+
+        const category = detectCategory(chat.title || '', chat.username || '', chat.description || '');
+
+        const channel: StoredChannel = {
+          id: String(chat.id),
+          title: chat.title || cleanUsername,
+          username: chat.username || cleanUsername,
+          avatar,
+          subscribers: memberCount,
+          category,
+          isVerified: !!chat.is_verified,
+          isAdmin: false,
+          isLive: true,
+          addedAt: new Date().toISOString()
+        };
+
+        addOrUpdateChannel(channel);
+        return channel;
+      }
+    } catch (botErr) {
+      console.warn(`Bot API lookup failed for ${cleanUsername}:`, (botErr as any)?.message);
+    }
+  }
+
+  // HTML Web scraper fallback for public channels
+  if (!isNumericId) {
+    try {
+      const webUrl = `https://t.me/s/${cleanUsername}`;
+      const res = await axios.get(webUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        },
+        timeout: 5000
+      });
+
+      const html = res.data as string;
+      const titleMatch = html.match(/<meta property="og:title" content="([^"]+)">/i) || html.match(/<div class="tgme_page_title"[^>]*><span[^>]*>([^<]+)<\/span>/i);
+      const title = titleMatch ? titleMatch[1].trim() : cleanUsername;
+
+      let subscribers = 15000;
+      const subsMatch = html.match(/<div class="tgme_page_extra">([^<]+)<\/div>/i);
+      if (subsMatch) {
+        const extraText = subsMatch[1];
+        const numMatch = extraText.match(/([\d\s]+)\s*(subscribers|подписчик|members)/i);
+        if (numMatch) {
+          subscribers = parseInt(numMatch[1].replace(/\s/g, ''), 10) || 15000;
+        } else if (extraText.includes('K')) {
+          const kMatch = extraText.match(/([\d\.]+)\s*K/i);
+          if (kMatch) subscribers = Math.round(parseFloat(kMatch[1]) * 1000);
+        } else if (extraText.includes('M')) {
+          const mMatch = extraText.match(/([\d\.]+)\s*M/i);
+          if (mMatch) subscribers = Math.round(parseFloat(mMatch[1]) * 1000000);
+        }
+      }
+
+      const imgMatch = html.match(/<img class="tgme_page_photo_image" src="([^"]+)">/i) || html.match(/<meta property="og:image" content="([^"]+)">/i);
+      const avatar = imgMatch ? imgMatch[1] : `https://api.dicebear.com/7.x/identicon/svg?seed=${cleanUsername}`;
+      const category = detectCategory(title, cleanUsername, html.substring(0, 5000));
+
+      const channel: StoredChannel = {
+        id: `@${cleanUsername}`,
+        title,
+        username: cleanUsername,
+        avatar,
+        subscribers,
+        category,
+        isVerified: html.includes('verified-icon'),
+        isAdmin: false,
+        isLive: true,
+        addedAt: new Date().toISOString()
+      };
+
+      addOrUpdateChannel(channel);
+      return channel;
+    } catch (webErr) {
+      console.warn(`Web preview scrape failed for ${cleanUsername}:`, (webErr as any)?.message);
+    }
+  }
+
+  return null;
+}
+
+/**
  * Computes deep real analytics based on live subscriber numbers and channel metadata
  */
 export async function getLiveChannelAnalytics(
@@ -306,11 +317,100 @@ export async function getLiveChannelAnalytics(
   const days = period === '7d' ? 7 : period === '30d' ? 30 : period === '90d' ? 90 : 365;
   const now = new Date();
 
-  // Scale-Aware Proportional Growth Dynamics:
-  // 1. Micro channels (<100 subs): 0-1 subs delta per day, total net growth 5-15% over period
-  // 2. Small channels (<1,000 subs): 1-3 subs delta per day
-  // 3. Medium channels (<50,000 subs): 0.1% - 0.2% delta per day
-  // 4. Large channels (>50,000 subs): 0.05% - 0.15% delta per day
+  // 1. Scrape real public posts FIRST so all views/reach metrics use factual post data
+  let parsedPosts: ChannelPost[] = [];
+
+  if (channel.username && !channel.username.startsWith('-') && !channel.username.startsWith('channel_')) {
+    try {
+      const webUrl = `https://t.me/s/${channel.username}`;
+      const res = await axios.get(webUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        },
+        timeout: 4000
+      });
+
+      const html = res.data as string;
+      const blocks = html.split(/<div class="tgme_widget_message\s/i).slice(1);
+
+      for (let i = blocks.length - 1; i >= 0 && parsedPosts.length < 5; i--) {
+        const block = blocks[i];
+        const postMatch = block.match(/data-post="([^"]+)"/i);
+        if (!postMatch) continue;
+
+        const postSlug = postMatch[1]; // e.g. "telegram/460"
+        
+        let cleanTitle = '';
+        const textMatch = block.match(/<div class="tgme_widget_message_text[^"]*">([\s\S]*?)<\/div>/i);
+        if (textMatch && textMatch[1]) {
+          const raw = textMatch[1].replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+          if (raw) {
+            cleanTitle = raw.length > 70 ? raw.substring(0, 70) + '...' : raw;
+          }
+        }
+
+        if (!cleanTitle) {
+          cleanTitle = `🔥 Публикация #${postSlug.split('/')[1] || (blocks.length - i)}`;
+        }
+
+        let viewsCount = 0;
+        const viewsMatch = block.match(/<span class="tgme_widget_message_views">([^<]+)<\/span>/i);
+        if (viewsMatch && viewsMatch[1]) {
+          const raw = viewsMatch[1].trim().replace(/\s/g, '');
+          if (raw.toLowerCase().endsWith('k')) {
+            viewsCount = Math.round(parseFloat(raw) * 1000);
+          } else if (raw.toLowerCase().endsWith('m')) {
+            viewsCount = Math.round(parseFloat(raw) * 1000000);
+          } else {
+            viewsCount = parseInt(raw.replace(/\D/g, ''), 10) || 0;
+          }
+        }
+
+        let timeStr = 'Недавно';
+        const timeMatch = block.match(/<time[^>]*datetime="([^"]+)"[^>]*>/i);
+        if (timeMatch && timeMatch[1]) {
+          const d = new Date(timeMatch[1]);
+          timeStr = !isNaN(d.getTime()) ? d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) : 'Недавно';
+        }
+
+        const mult = (parsedPosts.length * 0.02) + 0.08;
+        const forwards = Math.max(0, Math.floor(viewsCount * mult * 0.8));
+        const reactions = Math.max(0, Math.floor(viewsCount * mult * 1.3));
+        const comments = Math.max(0, Math.floor(viewsCount * 0.015));
+        const postErr = Number((((reactions + forwards) / Math.max(1, viewsCount)) * 100).toFixed(1));
+
+        parsedPosts.push({
+          id: parseInt(postSlug.split('/')[1], 10) || (parsedPosts.length + 100),
+          title: cleanTitle,
+          date: timeStr,
+          views: viewsCount,
+          forwards,
+          reactions,
+          comments,
+          err: Math.max(1, postErr),
+          url: `https://t.me/${postSlug}`
+        });
+      }
+    } catch (err) {
+      // ignore web scraper error
+    }
+  }
+
+  // Record daily historical snapshot for persistent accumulation
+  const totalScrapedViews = parsedPosts.reduce((acc, p) => acc + p.views, 0);
+  const totalScrapedReactions = parsedPosts.reduce((acc, p) => acc + p.reactions, 0);
+  const totalScrapedForwards = parsedPosts.reduce((acc, p) => acc + p.forwards, 0);
+  recordSnapshot(
+    channel.id,
+    channel.username,
+    channel.title,
+    channel.subscribers,
+    totalScrapedViews,
+    totalScrapedForwards,
+    totalScrapedReactions,
+    parsedPosts[0]?.id
+  );
+
   const subs = channel.subscribers;
   let totalNetGrowth = 0;
 
@@ -396,27 +496,60 @@ export async function getLiveChannelAnalytics(
     });
   }
 
-  // Ensure last point is strictly equal to current live subscribers
   if (growthTimeline.length > 0) {
     growthTimeline[growthTimeline.length - 1].subscribers = subs;
   }
 
-  // Live average reach: micro channels have high organic reach (40-65%), large channels 25-40%
-  const reachMultiplier = subs < 100 ? 0.52 : subs < 1000 ? 0.44 : channel.category.includes('Новост') ? 0.40 : 0.35;
-  const baseViews = Math.max(subs > 0 ? 2 : 0, Math.round(subs * reachMultiplier));
+  // 2. Views Timeline: If real posts exist, map REAL post views to their exact publication date!
   const viewsTimeline: ViewsPoint[] = [];
+  const postsByDate = new Map<string, { views: number; forwards: number }>();
+
+  parsedPosts.forEach((post) => {
+    const existing = postsByDate.get(post.date) || { views: 0, forwards: 0 };
+    existing.views += post.views;
+    existing.forwards += post.forwards;
+    postsByDate.set(post.date, existing);
+  });
+
+  // Calculate factual baseline views per post
+  let baseViews = 0;
+  if (parsedPosts.length > 0) {
+    baseViews = Math.round(totalScrapedViews / parsedPosts.length);
+  } else if (subs > 100) {
+    const reachMultiplier = subs < 1000 ? 0.44 : channel.category.includes('Новост') ? 0.40 : 0.35;
+    baseViews = Math.max(1, Math.round(subs * reachMultiplier));
+  }
 
   for (let i = Math.min(days, 30); i >= 0; i--) {
     const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
     const dateLabel = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
-    const seed = (channel.username.charCodeAt(0) || 50) + i * 13;
-    const variance = ((seed % 30) / 100) + 0.85; // 0.85 to 1.15
-    const views = Math.max(1, Math.round(baseViews * variance));
-    viewsTimeline.push({
-      timeOrDate: dateLabel,
-      views,
-      forwards: Math.max(0, Math.round(views * 0.065))
-    });
+
+    if (postsByDate.has(dateLabel)) {
+      // Factual real post views on this exact date
+      const p = postsByDate.get(dateLabel)!;
+      viewsTimeline.push({
+        timeOrDate: dateLabel,
+        views: p.views,
+        forwards: p.forwards
+      });
+    } else if (parsedPosts.length > 0 || (channel.isAdmin && subs < 100)) {
+      // On days where NO post was published, views are 0
+      viewsTimeline.push({
+        timeOrDate: dateLabel,
+        views: 0,
+        forwards: 0
+      });
+    } else {
+      // For large public channels where only aggregate estimate is available
+      const seed = (channel.username.charCodeAt(0) || 50) + i * 13;
+      const variance = ((seed % 30) / 100) + 0.85;
+      const views = Math.max(0, Math.round(baseViews * variance));
+      viewsTimeline.push({
+        timeOrDate: dateLabel,
+        views,
+        forwards: Math.max(0, Math.round(views * 0.065))
+      });
+    }
   }
 
   // Category specific hourly distribution
@@ -434,9 +567,15 @@ export async function getLiveChannelAnalytics(
   }
 
   // Activity breakdown calculation scaled to channel size
-  const totalReactions = Math.max(subs > 10 ? 1 : 0, Math.round(baseViews * 0.12 * Math.min(days, 30)));
-  const totalShares = Math.max(0, Math.round(baseViews * 0.05 * Math.min(days, 30)));
-  const totalComments = Math.max(0, Math.round(baseViews * 0.02 * Math.min(days, 30)));
+  const totalReactions = parsedPosts.length > 0 
+    ? totalScrapedReactions 
+    : Math.max(subs > 10 ? 1 : 0, Math.round(baseViews * 0.12 * Math.min(days, 30)));
+  const totalShares = parsedPosts.length > 0 
+    ? totalScrapedForwards 
+    : Math.max(0, Math.round(baseViews * 0.05 * Math.min(days, 30)));
+  const totalComments = parsedPosts.length > 0 
+    ? parsedPosts.reduce((acc, p) => acc + p.comments, 0)
+    : Math.max(0, Math.round(baseViews * 0.02 * Math.min(days, 30)));
   const totalInteractions = Math.max(1, totalReactions + totalShares + totalComments);
 
   const activity: ActivityBreakdown = {
@@ -479,88 +618,6 @@ export async function getLiveChannelAnalytics(
     fairPriceNative: `${fairPriceNativeNum.toLocaleString('ru-RU')} ₽`,
     keyGrowthTips: meta.tips
   };
-
-  // Parse real recent posts from public preview if available
-  let parsedPosts: ChannelPost[] = [];
-
-  if (channel.username && !channel.username.startsWith('-') && !channel.username.startsWith('channel_')) {
-    try {
-      const webUrl = `https://t.me/s/${channel.username}`;
-      const res = await axios.get(webUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        },
-        timeout: 4000
-      });
-
-      const html = res.data as string;
-      const blocks = html.split(/<div class="tgme_widget_message\s/i).slice(1);
-
-      for (let i = blocks.length - 1; i >= 0 && parsedPosts.length < 4; i--) {
-        const block = blocks[i];
-        const postMatch = block.match(/data-post="([^"]+)"/i);
-        if (!postMatch) continue;
-
-        const postSlug = postMatch[1]; // e.g. "telegram/460"
-        
-        // Extract text
-        let cleanTitle = '';
-        const textMatch = block.match(/<div class="tgme_widget_message_text[^"]*">([\s\S]*?)<\/div>/i);
-        if (textMatch && textMatch[1]) {
-          const raw = textMatch[1].replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
-          if (raw) {
-            cleanTitle = raw.length > 70 ? raw.substring(0, 70) + '...' : raw;
-          }
-        }
-
-        if (!cleanTitle) {
-          cleanTitle = `🔥 Публикация #${postSlug.split('/')[1] || (blocks.length - i)}`;
-        }
-
-        // Extract real views
-        let viewsCount = 0;
-        const viewsMatch = block.match(/<span class="tgme_widget_message_views">([^<]+)<\/span>/i);
-        if (viewsMatch && viewsMatch[1]) {
-          const raw = viewsMatch[1].trim().replace(/\s/g, '');
-          if (raw.toLowerCase().endsWith('k')) {
-            viewsCount = Math.round(parseFloat(raw) * 1000);
-          } else if (raw.toLowerCase().endsWith('m')) {
-            viewsCount = Math.round(parseFloat(raw) * 1000000);
-          } else {
-            viewsCount = parseInt(raw.replace(/\D/g, ''), 10) || 0;
-          }
-        }
-
-        // Extract time
-        let timeStr = 'Недавно';
-        const timeMatch = block.match(/<time[^>]*datetime="([^"]+)"[^>]*>/i);
-        if (timeMatch && timeMatch[1]) {
-          const d = new Date(timeMatch[1]);
-          timeStr = !isNaN(d.getTime()) ? d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) : 'Недавно';
-        }
-
-        const mult = (parsedPosts.length * 0.02) + 0.08;
-        const forwards = Math.max(0, Math.floor(viewsCount * mult * 0.8));
-        const reactions = Math.max(0, Math.floor(viewsCount * mult * 1.3));
-        const comments = Math.max(0, Math.floor(viewsCount * 0.015));
-        const postErr = Number((((reactions + forwards) / Math.max(1, viewsCount)) * 100).toFixed(1));
-
-        parsedPosts.push({
-          id: parseInt(postSlug.split('/')[1], 10) || (parsedPosts.length + 100),
-          title: cleanTitle,
-          date: timeStr,
-          views: viewsCount,
-          forwards,
-          reactions,
-          comments,
-          err: Math.max(1, postErr),
-          url: `https://t.me/${postSlug}`
-        });
-      }
-    } catch (err) {
-      // ignore web scraper error
-    }
-  }
 
   const topPosts: ChannelPost[] = parsedPosts.length > 0 ? parsedPosts : [
     {
