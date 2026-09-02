@@ -182,6 +182,7 @@ export function setupTelegramBot(token: string, frontendUrl: string): Bot {
       const channel = await fetchLiveTelegramChannel(username, token);
       if (channel) {
         channel.ownerId = ctx.from?.id;
+        channel.isAdmin = false;
         channel.addedAt = new Date().toISOString();
         addOrUpdateChannel(channel);
 

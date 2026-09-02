@@ -29,7 +29,7 @@ export const ActivityBreakdown: React.FC<ActivityBreakdownProps> = ({ data, colo
         backgroundColor: ['#ec4899', '#3b82f6', '#10b981'],
         borderColor: isDark ? '#1e293b' : '#ffffff',
         borderWidth: 2,
-        hoverOffset: 6
+        hoverOffset: 4
       }
     ]
   }), [data, isDark]);
@@ -60,7 +60,10 @@ export const ActivityBreakdown: React.FC<ActivityBreakdownProps> = ({ data, colo
   const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
-    cutout: '72%',
+    layout: {
+      padding: 6
+    },
+    cutout: '70%',
     plugins: {
       legend: {
         display: false
@@ -71,11 +74,17 @@ export const ActivityBreakdown: React.FC<ActivityBreakdownProps> = ({ data, colo
         bodyColor: isDark ? '#94a3b8' : '#475569',
         borderColor: isDark ? '#334155' : '#e2e8f0',
         borderWidth: 1,
-        padding: 10,
-        cornerRadius: 10,
+        padding: 8,
+        cornerRadius: 8,
         displayColors: true,
+        boxWidth: 8,
+        boxHeight: 8,
         boxPadding: 4,
-        zIndex: 9999,
+        caretSize: 4,
+        bodyFont: {
+          size: 11,
+          weight: 'bold' as const
+        },
         callbacks: {
           label: (context: any) => {
             const label = context.label || '';
@@ -101,8 +110,8 @@ export const ActivityBreakdown: React.FC<ActivityBreakdownProps> = ({ data, colo
       </div>
 
       <div className="flex flex-col sm:flex-row items-center gap-6">
-        {/* Doughnut Chart with native canvas center text & top-layered tooltips */}
-        <div className="relative w-36 h-36 flex-shrink-0 flex items-center justify-center">
+        {/* Doughnut Chart with roomy container & native canvas center text */}
+        <div className="relative w-40 h-40 flex-shrink-0 flex items-center justify-center">
           <Doughnut data={chartData} options={options} plugins={[centerTextPlugin]} />
         </div>
 

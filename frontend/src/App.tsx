@@ -31,6 +31,19 @@ import {
   Sparkles
 } from 'lucide-react';
 
+const LAST_CHANNEL_KEY = 'statify_last_selected_channel_id';
+
+function getInitialSelectedChannel(): ChannelOverview {
+  try {
+    const saved = localStorage.getItem(LAST_CHANNEL_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && (parsed.id || parsed.username)) return parsed;
+    }
+  } catch {}
+  return FALLBACK_CHANNELS[0];
+}
+
 export function App() {
   const {
     user,
@@ -42,7 +55,7 @@ export function App() {
   } = useTelegram();
 
   const [colorScheme, setColorScheme] = useState<'light' | 'dark'>(tgColorScheme);
-  const [selectedChannel, setSelectedChannel] = useState<ChannelOverview>(FALLBACK_CHANNELS[0]);
+  const [selectedChannel, setSelectedChannel] = useState<ChannelOverview>(getInitialSelectedChannel);
   const [period, setPeriod] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
   const [isPro, setIsPro] = useState(false);
 
@@ -125,6 +138,19 @@ export function App() {
     staleTime: 60000
   });
 
+  // Sync selectedChannel with server list if available
+  useEffect(() => {
+    if (channels && channels.length > 0) {
+      const match = channels.find(c => 
+        c.id === selectedChannel.id || 
+        (c.username && selectedChannel.username && c.username.toLowerCase() === selectedChannel.username.toLowerCase())
+      );
+      if (match) {
+        setSelectedChannel(match);
+      }
+    }
+  }, [channels]);
+
   // Fetch Stats for selected channel and period
   const {
     data: analytics,
@@ -141,6 +167,9 @@ export function App() {
 
   const handleSelectChannel = async (channel: ChannelOverview) => {
     setSelectedChannel(channel);
+    try {
+      localStorage.setItem(LAST_CHANNEL_KEY, JSON.stringify(channel));
+    } catch {}
     hapticSelection();
 
     // Automatically persist searched channel into user's list if not already present
@@ -168,6 +197,9 @@ export function App() {
     if (selectedChannel.id === channelId || selectedChannel.username === channelId.replace('@', '')) {
       if (updated.length > 0) {
         setSelectedChannel(updated[0]);
+        try {
+          localStorage.setItem(LAST_CHANNEL_KEY, JSON.stringify(updated[0]));
+        } catch {}
       }
     }
     hapticImpact('medium');

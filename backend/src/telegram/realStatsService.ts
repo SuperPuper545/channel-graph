@@ -170,7 +170,7 @@ export async function fetchLiveTelegramChannel(username: string, botToken?: stri
       subscribers: subscribers || 12500,
       category,
       isVerified,
-      isAdmin: true,
+      isAdmin: false,
       isLive: true,
       addedAt: new Date().toISOString()
     };
