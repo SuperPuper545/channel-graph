@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 
 const LAST_CHANNEL_KEY = 'statify_last_selected_channel_id';
+const PRICING_STORAGE_PREFIX = 'statify_channel_pricing_';
 
 function getInitialSelectedChannel(): ChannelOverview {
   try {
@@ -43,6 +44,27 @@ function getInitialSelectedChannel(): ChannelOverview {
     }
   } catch {}
   return FALLBACK_CHANNELS[0];
+}
+
+function getChannelSavedPricing(
+  channelId: string,
+  aiSuggested?: { price124?: string; price248?: string; priceNative?: string },
+  defaultUsername?: string
+): MediaKitSettings {
+  try {
+    const saved = localStorage.getItem(`${PRICING_STORAGE_PREFIX}${channelId}`);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && (parsed.price1_24 || parsed.contactUsername)) return parsed;
+    }
+  } catch {}
+
+  return {
+    contactUsername: defaultUsername || 'superpuper545',
+    price1_24: aiSuggested?.price124 || '4 500 ₽',
+    price2_48: aiSuggested?.price248 || '7 900 ₽',
+    priceNative: aiSuggested?.priceNative || '12 000 ₽'
+  };
 }
 
 export function App() {
@@ -60,12 +82,9 @@ export function App() {
   const [period, setPeriod] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
   const [isPro, setIsPro] = useState(false);
 
-  // MediaKit Settings state
-  const [mediaKitSettings, setMediaKitSettings] = useState<MediaKitSettings>({
-    contactUsername: user?.username || 'superpuper545',
-    price1_24: '4 500 ₽',
-    price2_48: '7 900 ₽',
-    priceNative: '12 000 ₽'
+  // MediaKit Settings state with persistent per-channel memory
+  const [mediaKitSettings, setMediaKitSettings] = useState<MediaKitSettings>(() => {
+    return getChannelSavedPricing(selectedChannel.id, undefined, user?.username);
   });
 
   // Modals state
@@ -123,14 +142,14 @@ export function App() {
     }
   }, [userStatus]);
 
-  useEffect(() => {
-    if (user?.username) {
-      setMediaKitSettings(prev => ({
-        ...prev,
-        contactUsername: user.username || prev.contactUsername
-      }));
+  const handleUpdateMediaKitSettings = (newSettings: MediaKitSettings) => {
+    setMediaKitSettings(newSettings);
+    if (selectedChannel?.id) {
+      try {
+        localStorage.setItem(`${PRICING_STORAGE_PREFIX}${selectedChannel.id}`, JSON.stringify(newSettings));
+      } catch {}
     }
-  }, [user]);
+  };
 
   // Fetch Channels per user with auto-refresh
   const { data: channels = FALLBACK_CHANNELS, isLoading: isChannelsLoading, refetch: refetchChannels } = useQuery({
@@ -165,6 +184,20 @@ export function App() {
     queryFn: () => fetchChannelStats(selectedChannel.id, period),
     staleTime: 30000
   });
+
+  // Synchronize pricing whenever active channel changes or AI insights arrive
+  useEffect(() => {
+    if (selectedChannel?.id) {
+      const aiPrices = analytics?.aiInsights ? {
+        price124: analytics.aiInsights.fairPrice124,
+        price248: analytics.aiInsights.fairPrice248,
+        priceNative: analytics.aiInsights.fairPriceNative
+      } : undefined;
+
+      const loaded = getChannelSavedPricing(selectedChannel.id, aiPrices, user?.username);
+      setMediaKitSettings(loaded);
+    }
+  }, [selectedChannel?.id, analytics?.aiInsights?.fairPrice124]);
 
   const queryClient = useQueryClient();
 
@@ -346,7 +379,7 @@ export function App() {
             {/* Advertising Pricing Widget (Visible on Dashboard!) */}
             <PricingWidget
               settings={mediaKitSettings}
-              onUpdateSettings={setMediaKitSettings}
+              onUpdateSettings={handleUpdateMediaKitSettings}
               onEditPricing={() => {
                 setIsPricingModalOpen(true);
                 hapticImpact('light');
@@ -421,7 +454,7 @@ export function App() {
             onClose={() => setIsPricingModalOpen(false)}
             settings={mediaKitSettings}
             onSave={(newSettings) => {
-              setMediaKitSettings(newSettings);
+              handleUpdateMediaKitSettings(newSettings);
               hapticNotification('success');
             }}
             suggestedPrices={{
