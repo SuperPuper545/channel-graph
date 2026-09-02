@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { setupTelegramBot } from './telegram/bot.js';
 import { createApiRouter } from './routes/api.js';
+import { startBackgroundTrackingScheduler } from './telegram/backgroundTracker.js';
 
 dotenv.config();
 
@@ -58,4 +59,7 @@ app.listen(port, () => {
   } else {
     console.warn('⚠️ [Telegram Bot] BOT_TOKEN not configured in .env');
   }
+
+  // Start automated daily background tracker for top and user channels
+  startBackgroundTrackingScheduler(botToken);
 });
