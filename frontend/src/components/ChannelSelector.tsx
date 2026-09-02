@@ -24,6 +24,8 @@ interface ChannelSelectorProps {
   onDeleteChannel: (channelId: string) => void;
   onOpenAddChannel: () => void;
   onRefreshChannels?: () => void;
+  isPro?: boolean;
+  onOpenPremium?: () => void;
 }
 
 export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
@@ -32,7 +34,9 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
   onSelectChannel,
   onDeleteChannel,
   onOpenAddChannel,
-  onRefreshChannels
+  onRefreshChannels,
+  isPro = false,
+  onOpenPremium
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'my' | 'viewed'>('my');
@@ -43,6 +47,9 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
   // Split channels into My Channels (admin bot) and Viewed Channels (search/public)
   const myChannels = channels.filter(c => c.isAdmin);
   const viewedChannels = channels.filter(c => !c.isAdmin);
+
+  const maxMyLimit = isPro ? 10 : 3;
+  const maxViewLimit = isPro ? 25 : 7;
 
   // Auto-switch tab to current channel type on open & trigger refresh
   useEffect(() => {
@@ -66,16 +73,22 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
     e.preventDefault();
     if (!searchQuery.trim()) return;
 
+    const clean = searchQuery.replace('@', '').replace('https://t.me/', '').trim();
+    const alreadyExists = viewedChannels.some(c => c.username?.toLowerCase() === clean.toLowerCase() || c.id === clean);
+
+    if (!alreadyExists && viewedChannels.length >= maxViewLimit) {
+      setSearchError(`Достигнут лимит просматриваемых каналов (${viewedChannels.length}/${maxViewLimit}). ${!isPro ? 'Перейдите на PRO (до 25 каналов)' : ''}`);
+      if (!isPro) onOpenPremium?.();
+      return;
+    }
+
     setIsSearching(true);
     setSearchError(null);
 
-    const clean = searchQuery.replace('@', '').replace('https://t.me/', '').trim();
     const result = await searchLiveChannel(clean);
-
     setIsSearching(false);
 
     if (result) {
-      // Mark as viewed (public)
       const viewedResult: ChannelOverview = {
         ...result,
         isAdmin: false
@@ -87,6 +100,18 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
     } else {
       setSearchError(`Канал @${clean} не найден. Проверьте правильность юзернейма.`);
     }
+  };
+
+  const handleAddChannelClick = () => {
+    if (myChannels.length >= maxMyLimit) {
+      if (!isPro) {
+        onOpenPremium?.();
+      } else {
+        alert(`Достигнут максимальный лимит PRO (${maxMyLimit}/${maxMyLimit} каналов).`);
+      }
+      return;
+    }
+    onOpenAddChannel();
   };
 
   return (
@@ -210,7 +235,7 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
               >
                 <span className="truncate">Мои каналы</span>
                 <span className="text-[9.5px] px-1.5 py-0.2 rounded-full bg-blue-500/10 text-blue-500 font-extrabold flex-shrink-0">
-                  {myChannels.length}
+                  {myChannels.length}/{maxMyLimit}
                 </span>
               </button>
 
@@ -224,7 +249,7 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
               >
                 <span className="truncate">Просмотр</span>
                 <span className="text-[9.5px] px-1.5 py-0.2 rounded-full bg-blue-500/10 text-blue-500 font-extrabold flex-shrink-0">
-                  {viewedChannels.length}
+                  {viewedChannels.length}/{maxViewLimit}
                 </span>
               </button>
             </div>
@@ -367,9 +392,7 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
             {/* Pinned Bottom Action Footer */}
             <div className="pt-3 border-t border-tg-border bg-tg-card flex-shrink-0">
               <button
-                onClick={() => {
-                  onOpenAddChannel();
-                }}
+                onClick={handleAddChannelClick}
                 className="w-full py-2.5 px-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-bold text-blue-500 bg-blue-500/10 hover:bg-blue-500/15 border border-blue-500/20 transition-all"
               >
                 <Plus className="w-4 h-4" />

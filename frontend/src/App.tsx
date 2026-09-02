@@ -19,6 +19,7 @@ import { ExportModal } from './components/ExportModal';
 import { EditPricingModal } from './components/EditPricingModal';
 import { PremiumModal } from './components/PremiumModal';
 import { AddChannelModal } from './components/AddChannelModal';
+import { DataCollectionBanner } from './components/DataCollectionBanner';
 import { TelegramAuthRequired } from './components/TelegramAuthRequired';
 import {
   Users,
@@ -247,6 +248,11 @@ export function App() {
                 hapticImpact('light');
               }}
               onRefreshChannels={refetchChannels}
+              isPro={isPro}
+              onOpenPremium={() => {
+                setIsPremiumOpen(true);
+                hapticImpact('medium');
+              }}
             />
           </div>
 
@@ -284,6 +290,9 @@ export function App() {
           </div>
         ) : (
           <div className="space-y-3.5 sm:space-y-4 animate-fade-in">
+            {/* Information Notice about History Accumulation */}
+            <DataCollectionBanner channelId={selectedChannel.id} />
+
             {/* KPI Metric Cards Grid */}
             <div className="grid grid-cols-2 lg:grid-cols-6 gap-2 sm:gap-3">
               <MetricCard
@@ -438,6 +447,12 @@ export function App() {
         isOpen={isAddChannelOpen}
         onClose={() => setIsAddChannelOpen(false)}
         onOpenTelegramLink={(url) => openTelegramLink(url)}
+        isPro={isPro}
+        connectedCount={channels.filter(c => c.isAdmin).length}
+        onOpenPremium={() => {
+          setIsPremiumOpen(true);
+          hapticImpact('medium');
+        }}
       />
     </div>
   );

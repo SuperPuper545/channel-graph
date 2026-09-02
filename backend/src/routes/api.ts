@@ -98,21 +98,42 @@ export function createApiRouter(botToken: string, botInstance?: Bot): Router {
     return res.json({ channels });
   });
 
-  // Save / Add channel for specific user
+  // Save / Add channel for specific user with 3/10 (Admin) and 7/25 (View) limits
   router.post('/channels', (req: Request, res: Response) => {
     const { channel, userId } = req.body;
     if (!channel) {
       return res.status(400).json({ error: 'Missing channel data' });
     }
 
+    const currentUserId = userId ? Number(userId) : 1;
+    const isPro = isUserPro(currentUserId);
+    const existingChannels = loadStoredChannels(currentUserId);
+
+    const isAdminChannel = !!channel.isAdmin;
+    const maxLimit = isAdminChannel ? (isPro ? 10 : 3) : (isPro ? 25 : 7);
+
+    // Count channels of this type
+    const currentCount = existingChannels.filter(c => !!c.isAdmin === isAdminChannel && c.id !== channel.id).length;
+
+    if (currentCount >= maxLimit) {
+      return res.status(403).json({
+        error: 'LIMIT_REACHED',
+        message: isAdminChannel
+          ? `Достигнут лимит подключенных каналов (${maxLimit}/${maxLimit}). ${!isPro ? 'Перейдите на PRO, чтобы подключить до 10 каналов!' : ''}`
+          : `Достигнут лимит просматриваемых каналов (${maxLimit}/${maxLimit}). ${!isPro ? 'Перейдите на PRO, чтобы просматривать до 25 каналов!' : ''}`,
+        limit: maxLimit,
+        isPro
+      });
+    }
+
     const channelData = {
       ...channel,
-      ownerId: userId ? Number(userId) : undefined,
+      ownerId: currentUserId,
       addedAt: new Date().toISOString()
     };
 
     addOrUpdateChannel(channelData);
-    const channels = loadStoredChannels(userId ? Number(userId) : undefined);
+    const channels = loadStoredChannels(currentUserId);
     return res.json({ success: true, channels });
   });
 

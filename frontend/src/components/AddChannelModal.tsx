@@ -5,16 +5,24 @@ interface AddChannelModalProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenTelegramLink: (url: string) => void;
+  isPro?: boolean;
+  connectedCount?: number;
+  onOpenPremium?: () => void;
 }
 
 export const AddChannelModal: React.FC<AddChannelModalProps> = ({
   isOpen,
   onClose,
-  onOpenTelegramLink
+  onOpenTelegramLink,
+  isPro = false,
+  connectedCount = 0,
+  onOpenPremium
 }) => {
   if (!isOpen) return null;
 
   const botUsername = 'StatVisualBot';
+  const maxLimit = isPro ? 10 : 3;
+  const isLimitReached = connectedCount >= maxLimit;
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
@@ -26,15 +34,38 @@ export const AddChannelModal: React.FC<AddChannelModalProps> = ({
           <X className="w-4 h-4" />
         </button>
 
-        <div className="flex items-center gap-2.5">
-          <div className="p-2.5 rounded-2xl bg-blue-500/10 text-blue-500">
-            <Bot className="w-6 h-6" />
-          </div>
-          <div>
-            <h3 className="font-extrabold text-base text-tg-text">Подключить канал</h3>
-            <p className="text-[11px] text-tg-hint">Инструкция по настройке аналитики</p>
+        <div className="flex items-center justify-between pr-8">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2.5 rounded-2xl bg-blue-500/10 text-blue-500">
+              <Bot className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-base text-tg-text">Подключить канал</h3>
+              <p className="text-[11px] text-tg-hint">Инструкция по настройке аналитики</p>
+            </div>
           </div>
         </div>
+
+        {/* Quota Slot Indicator */}
+        <div className="p-2 rounded-xl bg-tg-secondaryBg border border-tg-border flex items-center justify-between text-xs">
+          <span className="text-tg-hint">Слоты каналов:</span>
+          <span className="font-bold text-tg-text">
+            {connectedCount} из {maxLimit} {isPro ? '(PRO)' : '(Free)'}
+          </span>
+        </div>
+
+        {!isPro && (
+          <button
+            onClick={() => {
+              onClose();
+              onOpenPremium?.();
+            }}
+            className="w-full p-2.5 rounded-xl bg-gradient-to-r from-amber-500/10 to-purple-500/10 border border-amber-500/20 flex items-center justify-between text-[11px] text-amber-500 font-bold hover:opacity-90 transition-all"
+          >
+            <span>👑 До 10 каналов и 25 в поиске</span>
+            <span className="underline">PRO тариф →</span>
+          </button>
+        )}
 
         <div className="space-y-3 text-xs text-tg-text">
           <div className="p-3 rounded-2xl bg-tg-secondaryBg border border-tg-border space-y-2.5">
@@ -68,13 +99,25 @@ export const AddChannelModal: React.FC<AddChannelModalProps> = ({
         </div>
 
         <div className="space-y-2 pt-1">
-          <button
-            onClick={() => onOpenTelegramLink(`https://t.me/${botUsername}?startchannel=botstart&admin=post_messages+edit_messages+delete_messages`)}
-            className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-blue-600/25 transition-all active:scale-98"
-          >
-            <span>Добавить бота в канал</span>
-            <ExternalLink className="w-4 h-4" />
-          </button>
+          {isLimitReached ? (
+            <button
+              onClick={() => {
+                onClose();
+                onOpenPremium?.();
+              }}
+              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-purple-600 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-98"
+            >
+              <span>👑 Достигнут лимит. Перейти на PRO</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => onOpenTelegramLink(`https://t.me/${botUsername}?startchannel=botstart&admin=post_messages+edit_messages+delete_messages`)}
+              className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-blue-600/25 transition-all active:scale-98"
+            >
+              <span>Добавить бота в канал</span>
+              <ExternalLink className="w-4 h-4" />
+            </button>
+          )}
 
           <button
             onClick={onClose}

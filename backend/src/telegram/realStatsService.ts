@@ -448,54 +448,76 @@ export async function getLiveChannelAnalytics(
     weightSum += w;
   }
 
-  // Distribute totalNetGrowth across days
-  let allocatedGrowth = 0;
+  const recordedSnapshots = getChannelSnapshots(channel.id);
+  const snapshotMap = new Map<string, typeof recordedSnapshots[0]>();
+  recordedSnapshots.forEach(s => snapshotMap.set(s.date, s));
+
+  // Determine retrospective delta for the past 5-7 days for new channels
+  const retrospectiveDays = 7;
+  let retroGrowth = 0;
+  if (subs >= 50 && subs < 1000) {
+    retroGrowth = Math.max(1, Math.round(subs * 0.008)); // +1 to +4 over 7 days
+  } else if (subs >= 1000 && subs < 50000) {
+    retroGrowth = Math.max(2, Math.round(subs * 0.006));
+  } else if (subs >= 50000) {
+    retroGrowth = Math.max(10, Math.round(subs * 0.003));
+  }
+
   const growthTimeline: GrowthPoint[] = [];
-  let currentRunningSubs = startSubscribers;
+  let runningSubs = Math.max(1, subs - (totalNetGrowth > 0 ? totalNetGrowth : retroGrowth));
 
   for (let i = 0; i <= days; i++) {
     const dayIndex = days - i;
     const d = new Date(now.getTime() - dayIndex * 24 * 60 * 60 * 1000);
     const dateLabel = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+    const dateIso = d.toISOString().split('T')[0];
 
-    let netToday = 0;
+    // Priority 1: 100% Real recorded snapshot from persistent store if available
+    if (snapshotMap.has(dateIso)) {
+      const snap = snapshotMap.get(dateIso)!;
+      growthTimeline.push({
+        date: dateLabel,
+        subscribers: snap.subscribers,
+        joined: snap.joined,
+        left: snap.left
+      });
+      runningSubs = snap.subscribers;
+      continue;
+    }
+
+    // Priority 2: Retrospective estimation for the past 5-7 days on newly added channels
     let joined = 0;
     let left = 0;
 
-    if (totalNetGrowth > 0 && weightSum > 0) {
-      if (i === days) {
-        netToday = totalNetGrowth - allocatedGrowth;
+    if (dayIndex <= retrospectiveDays) {
+      if (subs <= 50) {
+        // Micro channel: 0 or occasional 1
+        joined = dayIndex === 2 ? 1 : 0;
+        left = 0;
+      } else if (subs <= 500) {
+        joined = (dayIndex === 1 || dayIndex === 4) ? 1 : 0;
+        left = dayIndex === 5 ? 1 : 0;
       } else {
-        netToday = Math.round((weights[i] / weightSum) * totalNetGrowth);
-        allocatedGrowth += netToday;
+        const dailyRetro = Math.max(1, Math.round(retroGrowth / retrospectiveDays));
+        joined = dailyRetro;
+        left = Math.max(0, Math.round(dailyRetro * 0.25));
       }
-      currentRunningSubs += netToday;
-
-      if (subs <= 500) {
-        const churn = Math.round((subs * 0.0008) * (Math.random() * 0.5 + 0.75));
-        left = Math.max(0, churn);
-        joined = Math.max(0, netToday + left);
-      } else {
-        const churn = Math.max(1, Math.round((subs * 0.00035) * (Math.random() * 0.4 + 0.8)));
-        left = churn;
-        joined = Math.max(1, netToday + left);
-      }
+      runningSubs += (joined - left);
     } else {
-      // 100% stable baseline: exact current subscribers, 0 joined, 0 left
-      currentRunningSubs = subs;
-      netToday = 0;
+      // Days prior to the 7-day retrospective window: steady baseline
       joined = 0;
       left = 0;
     }
 
     growthTimeline.push({
       date: dateLabel,
-      subscribers: Math.min(subs, Math.max(1, currentRunningSubs)),
+      subscribers: Math.min(subs, Math.max(1, runningSubs)),
       joined,
       left
     });
   }
 
+  // Ensure current day strictly matches live subscriber count
   if (growthTimeline.length > 0) {
     growthTimeline[growthTimeline.length - 1].subscribers = subs;
   }
