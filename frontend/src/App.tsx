@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTelegram } from './hooks/useTelegram';
-import { fetchChannels, fetchChannelStats, deleteChannel, FALLBACK_CHANNELS } from './services/api';
+import { fetchChannels, fetchChannelStats, deleteChannel, saveUserChannel, FALLBACK_CHANNELS } from './services/api';
 import { ChannelOverview, MediaKitSettings } from './types';
 import { Header } from './components/Header';
 import { ChannelSelector } from './components/ChannelSelector';
@@ -125,16 +125,6 @@ export function App() {
     staleTime: 60000
   });
 
-  // Ensure selected channel is in user's channel list
-  useEffect(() => {
-    if (channels && channels.length > 0) {
-      const exists = channels.some(c => c.id === selectedChannel.id || (c.username && c.username === selectedChannel.username));
-      if (!exists) {
-        setSelectedChannel(channels[0]);
-      }
-    }
-  }, [channels, selectedChannel]);
-
   // Fetch Stats for selected channel and period
   const {
     data: analytics,
@@ -149,9 +139,27 @@ export function App() {
 
   const queryClient = useQueryClient();
 
-  const handleSelectChannel = (channel: ChannelOverview) => {
+  const handleSelectChannel = async (channel: ChannelOverview) => {
     setSelectedChannel(channel);
     hapticSelection();
+
+    // Automatically persist searched channel into user's list if not already present
+    const exists = channels.some(c => 
+      c.id === channel.id || 
+      (c.username && channel.username && c.username.toLowerCase() === channel.username.toLowerCase())
+    );
+
+    if (!exists) {
+      queryClient.setQueryData<ChannelOverview[]>(['channels', user?.id], (old = []) => [channel, ...old]);
+      try {
+        const savedChannels = await saveUserChannel(channel, user?.id);
+        if (savedChannels && savedChannels.length > 0) {
+          queryClient.setQueryData(['channels', user?.id], savedChannels);
+        }
+      } catch (err) {
+        console.warn('Failed to persist channel:', err);
+      }
+    }
   };
 
   const handleDeleteChannel = async (channelId: string) => {
