@@ -19,6 +19,7 @@ import { ExportModal } from './components/ExportModal';
 import { EditPricingModal } from './components/EditPricingModal';
 import { PremiumModal } from './components/PremiumModal';
 import { AddChannelModal } from './components/AddChannelModal';
+import { TelegramAuthRequired } from './components/TelegramAuthRequired';
 import {
   Users,
   Flame,
@@ -117,12 +118,22 @@ export function App() {
     }
   }, [user]);
 
-  // Fetch Channels
+  // Fetch Channels per user
   const { data: channels = FALLBACK_CHANNELS, isLoading: isChannelsLoading } = useQuery({
     queryKey: ['channels', user?.id],
     queryFn: () => fetchChannels(user?.id),
     staleTime: 60000
   });
+
+  // Ensure selected channel is in user's channel list
+  useEffect(() => {
+    if (channels && channels.length > 0) {
+      const exists = channels.some(c => c.id === selectedChannel.id || (c.username && c.username === selectedChannel.username));
+      if (!exists) {
+        setSelectedChannel(channels[0]);
+      }
+    }
+  }, [channels, selectedChannel]);
 
   // Fetch Stats for selected channel and period
   const {
@@ -144,7 +155,7 @@ export function App() {
   };
 
   const handleDeleteChannel = async (channelId: string) => {
-    const updated = await deleteChannel(channelId);
+    const updated = await deleteChannel(channelId, user?.id);
     queryClient.setQueryData(['channels', user?.id], updated);
     if (selectedChannel.id === channelId || selectedChannel.username === channelId.replace('@', '')) {
       if (updated.length > 0) {
@@ -158,6 +169,11 @@ export function App() {
     setPeriod(newPeriod);
     hapticImpact('medium');
   };
+
+  // If accessed directly via browser outside Telegram WebApp, show beautiful landing/auth screen
+  if (!user) {
+    return <TelegramAuthRequired onOpenTelegram={openTelegramLink} />;
+  }
 
   return (
     <div className="min-h-screen bg-tg-secondaryBg text-tg-text flex flex-col transition-colors">

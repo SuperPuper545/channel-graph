@@ -90,21 +90,44 @@ export function createApiRouter(botToken: string, botInstance?: Bot): Router {
     return res.json({ success: true, profile });
   });
 
-  // Get all user channels (stored and connected)
-  router.get('/channels', (_req: Request, res: Response) => {
-    const channels = loadStoredChannels();
+  // Get user channels (stored and connected)
+  router.get('/channels', (req: Request, res: Response) => {
+    const rawUserId = (req.query.userId as string) || (req.headers['x-user-id'] as string);
+    const userId = rawUserId ? parseInt(rawUserId, 10) : undefined;
+    const channels = loadStoredChannels(userId);
     return res.json({ channels });
+  });
+
+  // Save / Add channel for specific user
+  router.post('/channels', (req: Request, res: Response) => {
+    const { channel, userId } = req.body;
+    if (!channel) {
+      return res.status(400).json({ error: 'Missing channel data' });
+    }
+
+    const channelData = {
+      ...channel,
+      ownerId: userId ? Number(userId) : undefined,
+      addedAt: new Date().toISOString()
+    };
+
+    addOrUpdateChannel(channelData);
+    const channels = loadStoredChannels(userId ? Number(userId) : undefined);
+    return res.json({ success: true, channels });
   });
 
   // Delete channel from stored list
   router.delete('/channels/:channelId', (req: Request, res: Response) => {
     const channelId = Array.isArray(req.params.channelId) ? req.params.channelId[0] : (req.params.channelId || '');
+    const rawUserId = (req.query.userId as string) || (req.headers['x-user-id'] as string);
+    const userId = rawUserId ? parseInt(rawUserId, 10) : undefined;
+
     if (!channelId) {
       return res.status(400).json({ error: 'Missing channelId' });
     }
 
-    const success = deleteStoredChannel(channelId);
-    const channels = loadStoredChannels();
+    const success = deleteStoredChannel(channelId, userId);
+    const channels = loadStoredChannels(userId);
     return res.json({ success, channels });
   });
 
@@ -136,7 +159,7 @@ export function createApiRouter(botToken: string, botInstance?: Bot): Router {
         timeout: 6000
       });
 
-      const contentType = response.headers['content-type'] || 'image/jpeg';
+      const contentType = String(response.headers['content-type'] || 'image/jpeg');
       res.setHeader('Content-Type', contentType);
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Cache-Control', 'public, max-age=86400');

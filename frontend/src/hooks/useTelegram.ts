@@ -58,15 +58,7 @@ export function useTelegram() {
       if (tg.initDataUnsafe?.user) {
         setUser(tg.initDataUnsafe.user);
       } else {
-        // Fallback for preview
-        setUser({
-          id: 123456789,
-          first_name: 'Александр',
-          last_name: 'Администратор',
-          username: 'alex_admin',
-          is_premium: true,
-          photo_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'
-        });
+        setUser(null);
       }
 
       setIsReady(true);
@@ -75,14 +67,7 @@ export function useTelegram() {
         tg.offEvent('themeChanged', applyTheme);
       };
     } else {
-      setUser({
-        id: 123456789,
-        first_name: 'Александр',
-        last_name: 'Администратор',
-        username: 'alex_admin',
-        is_premium: true,
-        photo_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'
-      });
+      setUser(null);
       setIsReady(true);
     }
   }, [tg, applyTheme]);
@@ -124,7 +109,7 @@ export function useTelegram() {
     user,
     colorScheme,
     isReady,
-    initData: tg?.initData || 'mock_user_preview',
+    initData: tg?.initData || '',
     hapticImpact,
     hapticNotification,
     hapticSelection,

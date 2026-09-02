@@ -11,34 +11,14 @@ const api = axios.create({
 
 export const FALLBACK_CHANNELS: ChannelOverview[] = [
   {
-    id: '-1001928374650',
-    title: 'Digital Marketing & Tech Insights',
-    username: 'digital_tech_pro',
-    avatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80',
-    subscribers: 48250,
-    category: 'Маркетинг и Бизнес',
+    id: '@durov',
+    title: 'Pavel Durov',
+    username: 'durov',
+    avatar: 'https://api.telegram.org/file/bot8640087859:AAGOpuHEdtYjYkeQfeABJUu83N7u0I_cVzE/profile_photos/file_3.jpg',
+    subscribers: 10926791,
+    category: 'Новости и Медиа',
     isVerified: true,
-    isAdmin: true
-  },
-  {
-    id: '-1001837465019',
-    title: 'Crypto & Web3 Pulse',
-    username: 'cryptopulse_hub',
-    avatar: 'https://images.unsplash.com/photo-1622979135225-d2ba269bc1df?w=150&auto=format&fit=crop&q=80',
-    subscribers: 114800,
-    category: 'Криптовалюты и Финансы',
-    isVerified: false,
-    isAdmin: true
-  },
-  {
-    id: '-1001746501928',
-    title: 'Frontend & AI Developer Hub',
-    username: 'dev_frontend_ai',
-    avatar: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=150&auto=format&fit=crop&q=80',
-    subscribers: 29400,
-    category: 'IT и Разработка',
-    isVerified: true,
-    isAdmin: true
+    isAdmin: false
   }
 ];
 
@@ -55,6 +35,18 @@ export async function fetchChannels(userId?: number): Promise<ChannelOverview[]>
   }
 }
 
+export async function saveUserChannel(channel: ChannelOverview, userId?: number): Promise<ChannelOverview[]> {
+  try {
+    const res = await api.post('/channels', { channel, userId });
+    if (res.data?.channels) {
+      return res.data.channels;
+    }
+  } catch (error) {
+    console.warn('Failed to save channel:', error);
+  }
+  return [channel, ...FALLBACK_CHANNELS];
+}
+
 export async function searchLiveChannel(query: string): Promise<ChannelOverview | null> {
   try {
     const res = await api.get('/channels/search', { params: { query } });
@@ -68,9 +60,9 @@ export async function searchLiveChannel(query: string): Promise<ChannelOverview 
   }
 }
 
-export async function deleteChannel(channelId: string): Promise<ChannelOverview[]> {
+export async function deleteChannel(channelId: string, userId?: number): Promise<ChannelOverview[]> {
   try {
-    const res = await api.delete(`/channels/${encodeURIComponent(channelId)}`);
+    const res = await api.delete(`/channels/${encodeURIComponent(channelId)}`, { params: { userId } });
     if (res.data?.channels) {
       return res.data.channels;
     }

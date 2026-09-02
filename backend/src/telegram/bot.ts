@@ -181,10 +181,14 @@ export function setupTelegramBot(token: string, frontendUrl: string): Bot {
 
       const channel = await fetchLiveTelegramChannel(username, token);
       if (channel) {
+        channel.ownerId = ctx.from?.id;
+        channel.addedAt = new Date().toISOString();
+        addOrUpdateChannel(channel);
+
         const keyboard = new InlineKeyboard()
           .webApp('📊 Открыть аналитику канала', frontendUrl);
 
-        await ctx.reply(`✅ <b>Канал найден и добавлен в аналитику:</b>\n\n📌 <b>${channel.title}</b> (@${channel.username})\n👥 Подписчиков: <b>${channel.subscribers.toLocaleString('ru-RU')}</b>\n\nНажмите кнопку ниже, чтобы открыть интерактивный дашборд!`, {
+        await ctx.reply(`✅ <b>Канал найден и добавлен в ваш профиль:</b>\n\n📌 <b>${channel.title}</b> (@${channel.username})\n👥 Подписчиков: <b>${channel.subscribers.toLocaleString('ru-RU')}</b>\n\nНажмите кнопку ниже, чтобы открыть интерактивный дашборд!`, {
           parse_mode: 'HTML',
           reply_markup: keyboard
         });
