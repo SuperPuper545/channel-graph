@@ -55,17 +55,17 @@ export function loadStoredChannels(userId?: number): StoredChannel[] {
   const all = readAllChannels();
 
   if (userId) {
-    const userChannels = all.filter(c => c.ownerId === userId);
+    const userChannels = all.filter(c => !c.ownerId || c.ownerId === userId);
     
     // Check if Durov is in userChannels
     const hasDurov = userChannels.some(c => c.id === '@durov' || c.username?.toLowerCase() === 'durov');
     if (!hasDurov) {
       return [...userChannels, ...DEFAULT_CHANNELS];
     }
-    return userChannels;
+    return userChannels.length > 0 ? userChannels : DEFAULT_CHANNELS;
   }
 
-  return DEFAULT_CHANNELS;
+  return all.length > 0 ? all : DEFAULT_CHANNELS;
 }
 
 export function saveStoredChannels(channels: StoredChannel[]): void {
