@@ -17,7 +17,7 @@ interface AdsGramBannerProps {
   onUpgradePro: () => void;
 }
 
-const REAL_ADSGRAM_BLOCK_ID = '45781';
+const REAL_ADSGRAM_BLOCK_ID = '46259';
 
 export const AdsGramBanner: React.FC<AdsGramBannerProps> = ({
   onAdCompleted,
