@@ -302,7 +302,7 @@ export async function getLiveChannelAnalytics(
 
   if (!stored || channelIdOrUsername.startsWith('@')) {
     const live = await fetchLiveTelegramChannel(channelIdOrUsername, botToken);
-    if (live) stored = live;
+    if (live && (live.subscribers > 10 || !stored)) stored = { ...stored, ...live, subscribers: stored?.subscribers && live.subscribers <= 1 ? stored.subscribers : live.subscribers };
   }
 
   const channel: ChannelOverview = stored || {
