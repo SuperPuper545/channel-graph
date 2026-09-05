@@ -227,10 +227,17 @@ export const EngagementChart: React.FC<EngagementChartProps> = ({
         grid: {
           color: gridColor
         },
+        suggestedMin: 0,
+        suggestedMax: Math.max(25, Math.ceil((errRate || 10) * 1.35)),
         ticks: {
           color: textColor,
           font: { size: 10.5, weight: 'bold' },
-          callback: (v) => `${v}%`
+          precision: 0,
+          callback: (value: any) => {
+            const num = Number(value);
+            if (isNaN(num)) return '';
+            return `${Number(num.toFixed(1))}%`;
+          }
         }
       }
     }
