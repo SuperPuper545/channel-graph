@@ -219,8 +219,25 @@ export function App() {
     staleTime: 30000
   });
 
-  // Synchronize pricing whenever active channel changes or AI insights arrive
+  // Synchronize pricing and channel metadata whenever fresh analytics arrive
   useEffect(() => {
+    if (analytics?.overview) {
+      setSelectedChannel(prev => {
+        if (
+          prev.id === analytics.overview.id ||
+          (prev.username && analytics.overview.username && prev.username.toLowerCase() === analytics.overview.username.toLowerCase())
+        ) {
+          if (prev.subscribers !== analytics.overview.subscribers || prev.title !== analytics.overview.title) {
+            return {
+              ...prev,
+              ...analytics.overview
+            };
+          }
+        }
+        return prev;
+      });
+    }
+
     if (selectedChannel?.id) {
       const aiPrices = analytics?.aiInsights ? {
         price124: analytics.aiInsights.fairPrice124,
@@ -231,7 +248,7 @@ export function App() {
       const loaded = getChannelSavedPricing(selectedChannel.id, aiPrices, user?.username);
       setMediaKitSettings(loaded);
     }
-  }, [selectedChannel?.id, analytics?.aiInsights?.fairPrice124]);
+  }, [selectedChannel?.id, analytics?.overview, analytics?.aiInsights?.fairPrice124]);
 
   const queryClient = useQueryClient();
 

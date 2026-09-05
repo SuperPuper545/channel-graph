@@ -631,35 +631,35 @@ export async function getLiveChannelAnalytics(
         trend: netGrowth > 0 ? 'up' : netGrowth < 0 ? 'down' : 'neutral'
       },
       err: {
-        title: 'ERR (Вовлеченность)',
+        title: 'ERR',
         value: `${errValue}%`,
         change: 0,
         changeLabel: totalScrapedViews > 0 ? 'По реальным постам' : 'Без данных',
         trend: 'neutral'
       },
       growth: {
-        title: 'Прирост аудитории',
+        title: 'Прирост',
         value: `${netGrowth > 0 ? '+' : ''}${netGrowth.toLocaleString('ru-RU')}`,
         change: growthPercent,
         changeLabel: netGrowth === 0 ? 'Без изменений' : `${growthPercent >= 0 ? '+' : ''}${growthPercent}% за период`,
         trend: netGrowth > 0 ? 'up' : netGrowth < 0 ? 'down' : 'neutral'
       },
       avgReach: {
-        title: 'Средний охват поста',
+        title: 'Охват поста',
         value: baseViews.toLocaleString('ru-RU'),
         change: 0,
         changeLabel: baseViews > 0 ? `${Math.round((baseViews / Math.max(1, channel.subscribers)) * 100)}% от аудитории` : '0% от аудитории',
         trend: 'neutral'
       },
       citationIndex: {
-        title: 'Индекс цитирования (ИЦ)',
+        title: 'Индекс ИЦ',
         value: icValue,
         change: 0,
         changeLabel: totalShares > 0 ? `${totalShares.toLocaleString('ru-RU')} репостов` : '0 упоминаний',
         trend: icValue > 0 ? 'up' : 'neutral'
       },
       totalViews: {
-        title: 'Всего просмотров',
+        title: 'Просмотры',
         value: totalScrapedViews.toLocaleString('ru-RU'),
         change: 0,
         changeLabel: 'за период',
