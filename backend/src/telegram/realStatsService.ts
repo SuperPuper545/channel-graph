@@ -392,13 +392,8 @@ export async function getLiveChannelAnalytics(
           }
         }
 
-        // 1. Reactions:
-        // Use exact parsed reactions from HTML if present (e.g. Durov has 66k+ stars/emojis).
-        // If HTML has no reaction tags, only calculate reactions if channel actually has reactions enabled (not disabled)
-        let finalReactions = reactions;
-        if (finalReactions === 0 && viewsCount > 0 && channel.hasReactions === true) {
-          finalReactions = Math.max(1, Math.round(viewsCount * 0.042));
-        }
+        // 1. Reactions: Exact parsed reactions from Telegram post (0 if disabled on channel, or actual count if enabled)
+        const finalReactions = reactions;
 
         // 2. Comments:
         // Use exact parsed comments from HTML if present.
