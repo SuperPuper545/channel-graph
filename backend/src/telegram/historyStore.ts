@@ -63,11 +63,27 @@ export function recordSnapshot(
   const now = new Date();
   const todayStr = now.toISOString().split('T')[0];
 
-  let record = history[channelId];
+  const primaryKey = username ? `@${username.replace('@', '').toLowerCase()}` : channelId;
+  let targetKey = primaryKey;
+
+  for (const key of Object.keys(history)) {
+    const rec = history[key];
+    if (
+      key.toLowerCase() === primaryKey.toLowerCase() ||
+      key.toLowerCase() === channelId.toLowerCase() ||
+      (username && rec.username && rec.username.toLowerCase() === username.replace('@', '').toLowerCase()) ||
+      (rec.channelId && rec.channelId.toLowerCase() === channelId.toLowerCase())
+    ) {
+      targetKey = key;
+      break;
+    }
+  }
+
+  let record = history[targetKey];
   if (!record) {
     record = {
       channelId,
-      username,
+      username: username ? username.replace('@', '') : channelId,
       title,
       firstTrackedAt: now.toISOString(),
       lastUpdatedAt: now.toISOString(),
@@ -114,29 +130,43 @@ export function recordSnapshot(
   }
 
   record.lastUpdatedAt = now.toISOString();
-  record.username = username;
-  record.title = title;
-  history[channelId] = record;
+  if (username) record.username = username.replace('@', '');
+  if (title) record.title = title;
+  if (channelId) record.channelId = channelId;
+  history[targetKey] = record;
 
   saveAllChannelHistory(history);
   return record;
 }
 
-export function getChannelSnapshots(channelId: string): ChannelSnapshot[] {
+export function getChannelSnapshots(channelId: string, username?: string): ChannelSnapshot[] {
   const history = loadAllChannelHistory();
-  if (history[channelId]?.snapshots && history[channelId].snapshots.length > 0) {
-    return history[channelId].snapshots;
+  const candidates = [
+    channelId,
+    channelId.replace('@', ''),
+    `@${channelId.replace('@', '')}`,
+    ...(username ? [username, username.replace('@', ''), `@${username.replace('@', '')}`] : [])
+  ].map(s => s.toLowerCase());
+
+  for (const cand of candidates) {
+    if (history[cand]?.snapshots && history[cand].snapshots.length > 0) {
+      return history[cand].snapshots;
+    }
   }
 
-  const clean = channelId.replace('@', '').toLowerCase();
   for (const key of Object.keys(history)) {
     const rec = history[key];
-    if (
-      key.replace('@', '').toLowerCase() === clean ||
-      rec.username?.toLowerCase() === clean ||
-      rec.channelId?.replace('@', '').toLowerCase() === clean
-    ) {
-      return rec.snapshots || [];
+    const keyClean = key.replace('@', '').toLowerCase();
+    const recUserClean = (rec.username || '').replace('@', '').toLowerCase();
+    const recIdClean = (rec.channelId || '').replace('@', '').toLowerCase();
+
+    for (const cand of candidates) {
+      const candClean = cand.replace('@', '');
+      if (candClean && (keyClean === candClean || recUserClean === candClean || recIdClean === candClean)) {
+        if (rec.snapshots && rec.snapshots.length > 0) {
+          return rec.snapshots;
+        }
+      }
     }
   }
   return [];

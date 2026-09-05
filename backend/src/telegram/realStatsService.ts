@@ -414,7 +414,7 @@ export async function getLiveChannelAnalytics(
   );
 
   const subs = channel.subscribers;
-  const recordedSnapshots = getChannelSnapshots(channel.id);
+  const recordedSnapshots = getChannelSnapshots(channel.id, channel.username || channelIdOrUsername);
   const snapshotMap = new Map<string, typeof recordedSnapshots[0]>();
   recordedSnapshots.forEach(s => {
     if (s && s.date) snapshotMap.set(s.date, s);
