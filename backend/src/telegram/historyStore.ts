@@ -76,18 +76,19 @@ export function recordSnapshot(
   }
 
   // Calculate delta from previous snapshot
+  const todayIndex = record.snapshots.findIndex(s => s.date === todayStr);
+  const prevSnap = todayIndex >= 0
+    ? (todayIndex > 0 ? record.snapshots[todayIndex - 1] : null)
+    : (record.snapshots.length > 0 ? record.snapshots[record.snapshots.length - 1] : null);
+
   let joined = 0;
   let left = 0;
-  const lastSnap = record.snapshots.length > 0 ? record.snapshots[record.snapshots.length - 1] : null;
-
-  if (lastSnap) {
-    const diff = subscribers - lastSnap.subscribers;
+  if (prevSnap) {
+    const diff = subscribers - prevSnap.subscribers;
     if (diff > 0) joined = diff;
     else if (diff < 0) left = Math.abs(diff);
   }
 
-  // Check if we already have a snapshot for today
-  const todayIndex = record.snapshots.findIndex(s => s.date === todayStr);
   const snap: ChannelSnapshot = {
     timestamp: now.toISOString(),
     date: todayStr,
@@ -123,5 +124,20 @@ export function recordSnapshot(
 
 export function getChannelSnapshots(channelId: string): ChannelSnapshot[] {
   const history = loadAllChannelHistory();
-  return history[channelId]?.snapshots || [];
+  if (history[channelId]?.snapshots && history[channelId].snapshots.length > 0) {
+    return history[channelId].snapshots;
+  }
+
+  const clean = channelId.replace('@', '').toLowerCase();
+  for (const key of Object.keys(history)) {
+    const rec = history[key];
+    if (
+      key.replace('@', '').toLowerCase() === clean ||
+      rec.username?.toLowerCase() === clean ||
+      rec.channelId?.replace('@', '').toLowerCase() === clean
+    ) {
+      return rec.snapshots || [];
+    }
+  }
+  return [];
 }

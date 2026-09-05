@@ -414,51 +414,18 @@ export async function getLiveChannelAnalytics(
   );
 
   const subs = channel.subscribers;
-  let totalNetGrowth = 0;
-
-  // Truthful Baseline: Channels < 100 subs or personal connected channels without new traffic have a strict 0-growth baseline
-  if (subs < 100 || (channel.isAdmin && subs < 1000)) {
-    totalNetGrowth = 0;
-  } else if (subs < 1000) {
-    totalNetGrowth = Math.round(subs * 0.02 * (days / 30));
-  } else if (subs < 50000) {
-    totalNetGrowth = Math.round(subs * 0.03 * (days / 30));
-  } else {
-    totalNetGrowth = Math.round(subs * 0.015 * (days / 30));
-  }
-
-  const startSubscribers = Math.max(1, subs - totalNetGrowth);
-
-  // Generate smooth daily points ensuring the sum of deltas equals totalNetGrowth exactly
-  const weights: number[] = [];
-  let weightSum = 0;
-
-  for (let i = 0; i <= days; i++) {
-    const dayIndex = days - i;
-    const d = new Date(now.getTime() - dayIndex * 24 * 60 * 60 * 1000);
-    const dayOfWeek = d.getDay();
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-    const isMidweek = dayOfWeek >= 2 && dayOfWeek <= 4;
-    const dayFactor = isMidweek ? 1.25 : isWeekend ? 0.75 : 1.0;
-    
-    // Smooth deterministic variance using string seed
-    const seed = (channel.id.charCodeAt(0) || 42) + i * 17;
-    const pseudoRand = ((seed % 100) / 100) * 0.4 + 0.8; // 0.8 to 1.2
-
-    const w = dayFactor * pseudoRand;
-    weights.push(w);
-    weightSum += w;
-  }
-
   const recordedSnapshots = getChannelSnapshots(channel.id);
   const snapshotMap = new Map<string, typeof recordedSnapshots[0]>();
   recordedSnapshots.forEach(s => {
-    if (s && s.joined > 0) snapshotMap.set(s.date, s);
+    if (s && s.date) snapshotMap.set(s.date, s);
   });
 
-  let currentRunningSubs = startSubscribers;
-  let allocatedGrowth = 0;
+  // Determine starting baseline subscribers for days prior to tracking
+  const earliestSnap = recordedSnapshots.length > 0 ? recordedSnapshots[0] : null;
+  const baselineSubs = earliestSnap ? earliestSnap.subscribers : subs;
+
   const growthTimeline: GrowthPoint[] = [];
+  let currentRunningSubs = baselineSubs;
 
   for (let i = 0; i <= days; i++) {
     const dayIndex = days - i;
@@ -466,58 +433,51 @@ export async function getLiveChannelAnalytics(
     const dateLabel = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
     const dateIso = d.toISOString().split('T')[0];
 
-    // Priority 1: Real multi-day recorded snapshot if valid
+    // Priority 1: Real recorded snapshot from persistent store for this date
     if (snapshotMap.has(dateIso)) {
       const snap = snapshotMap.get(dateIso)!;
       growthTimeline.push({
         date: dateLabel,
         subscribers: snap.subscribers,
-        joined: snap.joined,
-        left: snap.left
+        joined: snap.joined || 0,
+        left: snap.left || 0
       });
       currentRunningSubs = snap.subscribers;
       continue;
     }
 
-    let netToday = 0;
-    let joined = 0;
-    let left = 0;
-
-    if (totalNetGrowth > 0 && weightSum > 0) {
-      if (i === days) {
-        netToday = totalNetGrowth - allocatedGrowth;
-      } else {
-        netToday = Math.round((weights[i] / weightSum) * totalNetGrowth);
-        allocatedGrowth += netToday;
+    // Priority 2: For today (the last point in requested period), if no snapshot was recorded yet today,
+    // calculate delta between current live subs and the most recent prior snapshot
+    if (i === days) {
+      const lastPriorSnap = recordedSnapshots.length > 0 ? recordedSnapshots[recordedSnapshots.length - 1] : null;
+      let joined = 0;
+      let left = 0;
+      if (lastPriorSnap && lastPriorSnap.date !== dateIso) {
+        const diff = subs - lastPriorSnap.subscribers;
+        if (diff > 0) joined = diff;
+        else if (diff < 0) left = Math.abs(diff);
       }
-      currentRunningSubs += netToday;
-
-      const seed = (channel.id.charCodeAt(0) || 42) + i * 19;
-      if (subs <= 500) {
-        const churn = Math.round((subs * 0.0008) * (((seed % 50) / 100) + 0.75));
-        left = Math.max(0, churn);
-        joined = Math.max(0, netToday + left);
-      } else {
-        const churn = Math.max(1, Math.round((subs * 0.00035) * (((seed % 40) / 100) + 0.8)));
-        left = churn;
-        joined = Math.max(1, netToday + left);
-      }
-    } else {
+      growthTimeline.push({
+        date: dateLabel,
+        subscribers: subs,
+        joined,
+        left
+      });
       currentRunningSubs = subs;
-      netToday = 0;
-      joined = 0;
-      left = 0;
+      continue;
     }
 
+    // Priority 3: Days before tracking started or days without records
+    // Pure honest baseline: 0 joined, 0 left, subscribers steady at known baseline
     growthTimeline.push({
       date: dateLabel,
-      subscribers: Math.min(subs, Math.max(1, currentRunningSubs)),
-      joined,
-      left
+      subscribers: currentRunningSubs,
+      joined: 0,
+      left: 0
     });
   }
 
-  // Ensure current day strictly matches live subscriber count
+  // Ensure last point strictly matches live subscriber count
   if (growthTimeline.length > 0) {
     growthTimeline[growthTimeline.length - 1].subscribers = subs;
   }

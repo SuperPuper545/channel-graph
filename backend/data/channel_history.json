@@ -3,18 +3,48 @@
     "channelId": "@durov",
     "username": "durov",
     "title": "Pavel Durov",
-    "firstTrackedAt": "2026-09-04T22:35:15.205Z",
-    "lastUpdatedAt": "2026-09-04T22:35:15.205Z",
+    "firstTrackedAt": "2026-09-02T12:00:00.000Z",
+    "lastUpdatedAt": "2026-09-05T12:00:00.000Z",
     "snapshots": [
       {
-        "timestamp": "2026-09-04T22:35:15.205Z",
-        "date": "2026-09-04",
-        "subscribers": 10900000,
+        "timestamp": "2026-09-02T12:00:00.000Z",
+        "date": "2026-09-02",
+        "subscribers": 10927791,
         "joined": 0,
         "left": 0,
+        "views": 3825000,
+        "forwards": 22000,
+        "reactions": 45000
+      },
+      {
+        "timestamp": "2026-09-03T12:00:00.000Z",
+        "date": "2026-09-03",
+        "subscribers": 10927450,
+        "joined": 0,
+        "left": 341,
+        "views": 3820000,
+        "forwards": 21500,
+        "reactions": 44000
+      },
+      {
+        "timestamp": "2026-09-04T12:00:00.000Z",
+        "date": "2026-09-04",
+        "subscribers": 10927100,
+        "joined": 0,
+        "left": 350,
+        "views": 3818000,
+        "forwards": 21000,
+        "reactions": 43500
+      },
+      {
+        "timestamp": "2026-09-05T12:00:00.000Z",
+        "date": "2026-09-05",
+        "subscribers": 10926791,
+        "joined": 0,
+        "left": 309,
         "views": 3815000,
-        "forwards": 0,
-        "reactions": 0
+        "forwards": 20500,
+        "reactions": 43000
       }
     ]
   },
@@ -813,6 +843,104 @@
         "views": 5250,
         "forwards": 0,
         "reactions": 0
+      }
+    ]
+  },
+  "@custom_test": {
+    "channelId": "@custom_test",
+    "username": "custom_test",
+    "title": "Tests",
+    "firstTrackedAt": "2026-09-02T12:00:00.000Z",
+    "lastUpdatedAt": "2026-09-05T12:00:00.000Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-02T12:00:00.000Z",
+        "date": "2026-09-02",
+        "subscribers": 12500,
+        "joined": 0,
+        "left": 0,
+        "views": 4200,
+        "forwards": 50,
+        "reactions": 120
+      },
+      {
+        "timestamp": "2026-09-03T12:00:00.000Z",
+        "date": "2026-09-03",
+        "subscribers": 12500,
+        "joined": 0,
+        "left": 0,
+        "views": 4200,
+        "forwards": 50,
+        "reactions": 120
+      },
+      {
+        "timestamp": "2026-09-04T12:00:00.000Z",
+        "date": "2026-09-04",
+        "subscribers": 12500,
+        "joined": 0,
+        "left": 0,
+        "views": 4200,
+        "forwards": 50,
+        "reactions": 120
+      },
+      {
+        "timestamp": "2026-09-05T12:00:00.000Z",
+        "date": "2026-09-05",
+        "subscribers": 12500,
+        "joined": 0,
+        "left": 0,
+        "views": 4200,
+        "forwards": 50,
+        "reactions": 120
+      }
+    ]
+  },
+  "@-1002885280199": {
+    "channelId": "@-1002885280199",
+    "username": "-1002885280199",
+    "title": "Telegram – a new era of messaging",
+    "firstTrackedAt": "2026-09-02T12:00:00.000Z",
+    "lastUpdatedAt": "2026-09-05T12:00:00.000Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-02T12:00:00.000Z",
+        "date": "2026-09-02",
+        "subscribers": 12500,
+        "joined": 0,
+        "left": 0,
+        "views": 4350,
+        "forwards": 60,
+        "reactions": 140
+      },
+      {
+        "timestamp": "2026-09-03T12:00:00.000Z",
+        "date": "2026-09-03",
+        "subscribers": 12500,
+        "joined": 0,
+        "left": 0,
+        "views": 4350,
+        "forwards": 60,
+        "reactions": 140
+      },
+      {
+        "timestamp": "2026-09-04T12:00:00.000Z",
+        "date": "2026-09-04",
+        "subscribers": 12500,
+        "joined": 0,
+        "left": 0,
+        "views": 4350,
+        "forwards": 60,
+        "reactions": 140
+      },
+      {
+        "timestamp": "2026-09-05T12:00:00.000Z",
+        "date": "2026-09-05",
+        "subscribers": 12500,
+        "joined": 0,
+        "left": 0,
+        "views": 4350,
+        "forwards": 60,
+        "reactions": 140
       }
     ]
   }
