@@ -21,18 +21,34 @@ export const ActivityBreakdown: React.FC<ActivityBreakdownProps> = ({ data, colo
   const isDark = colorScheme === 'dark';
   const totalInteractions = data.reactions + data.shares + data.comments;
 
-  const chartData = useMemo(() => ({
-    labels: ['Реакции', 'Репосты', 'Комментарии'],
-    datasets: [
-      {
-        data: [data.reactions, data.shares, data.comments],
-        backgroundColor: ['#ec4899', '#3b82f6', '#10b981'],
-        borderColor: isDark ? '#1e293b' : '#ffffff',
-        borderWidth: 2,
-        hoverOffset: 4
-      }
-    ]
-  }), [data, isDark]);
+  const chartData = useMemo(() => {
+    if (totalInteractions === 0) {
+      return {
+        labels: ['Нет активности'],
+        datasets: [
+          {
+            data: [1],
+            backgroundColor: [isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'],
+            borderColor: isDark ? '#1e293b' : '#ffffff',
+            borderWidth: 2,
+            hoverOffset: 0
+          }
+        ]
+      };
+    }
+    return {
+      labels: ['Реакции', 'Репосты', 'Комментарии'],
+      datasets: [
+        {
+          data: [data.reactions, data.shares, data.comments],
+          backgroundColor: ['#ec4899', '#3b82f6', '#10b981'],
+          borderColor: isDark ? '#1e293b' : '#ffffff',
+          borderWidth: 2,
+          hoverOffset: 4
+        }
+      ]
+    };
+  }, [data, isDark, totalInteractions]);
 
   const centerTextPlugin: Plugin<'doughnut'> = useMemo(() => ({
     id: 'centerText',
@@ -69,6 +85,7 @@ export const ActivityBreakdown: React.FC<ActivityBreakdownProps> = ({ data, colo
         display: false
       },
       tooltip: {
+        enabled: totalInteractions > 0,
         backgroundColor: isDark ? '#0f172a' : '#ffffff',
         titleColor: isDark ? '#f8fafc' : '#0f172a',
         bodyColor: isDark ? '#94a3b8' : '#475569',
@@ -178,6 +195,12 @@ export const ActivityBreakdown: React.FC<ActivityBreakdownProps> = ({ data, colo
           </div>
         </div>
       </div>
+
+      {totalInteractions === 0 && (
+        <div className="pt-2 border-t border-tg-border text-center text-[11px] text-tg-hint">
+          💡 В канале отключены реакции и комментарии или пока нет свежих публикаций
+        </div>
+      )}
     </div>
   );
 };
