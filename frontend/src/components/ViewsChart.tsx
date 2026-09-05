@@ -57,20 +57,86 @@ export const ViewsChart: React.FC<ViewsChartProps> = ({
   const tz = getUserTimezoneInfo();
 
   const handleZoomIn = () => {
-    if (chartRef.current) {
-      chartRef.current.zoom(1.25);
+    if (!chartRef.current) return;
+    const chart = chartRef.current;
+    const xScale = chart.scales?.x;
+    const totalCount = activeData.length;
+    if (!xScale || totalCount <= 2) return;
+
+    let currentMin = typeof xScale.min === 'number' ? xScale.min : 0;
+    let currentMax = typeof xScale.max === 'number' ? xScale.max : totalCount - 1;
+    if (isNaN(currentMin)) currentMin = 0;
+    if (isNaN(currentMax)) currentMax = totalCount - 1;
+
+    let currentSpan = currentMax - currentMin;
+    if (currentSpan <= 0 || currentSpan > totalCount - 1) {
+      currentSpan = totalCount - 1;
+    }
+
+    const newSpan = Math.max(2, Math.min(Math.round(currentSpan * 0.7), currentSpan - 1));
+    const newMax = totalCount - 1;
+    const newMin = Math.max(0, newMax - newSpan);
+
+    if (typeof chart.zoomScale === 'function') {
+      chart.zoomScale('x', { min: newMin, max: newMax }, 'default');
+    } else {
+      xScale.options.min = newMin;
+      xScale.options.max = newMax;
+      chart.update();
     }
   };
 
   const handleZoomOut = () => {
-    if (chartRef.current) {
-      chartRef.current.zoom(0.8);
+    if (!chartRef.current) return;
+    const chart = chartRef.current;
+    const xScale = chart.scales?.x;
+    const totalCount = activeData.length;
+    if (!xScale || totalCount <= 2) return;
+
+    let currentMin = typeof xScale.min === 'number' ? xScale.min : 0;
+    let currentMax = typeof xScale.max === 'number' ? xScale.max : totalCount - 1;
+    if (isNaN(currentMin)) currentMin = 0;
+    if (isNaN(currentMax)) currentMax = totalCount - 1;
+
+    let currentSpan = currentMax - currentMin;
+    if (currentSpan <= 0 || currentSpan >= totalCount - 1) {
+      if (typeof chart.resetZoom === 'function') chart.resetZoom();
+      return;
+    }
+
+    const newSpan = Math.min(totalCount - 1, Math.max(Math.round(currentSpan * 1.4), currentSpan + 1));
+    if (newSpan >= totalCount - 1) {
+      if (typeof chart.resetZoom === 'function') {
+        chart.resetZoom();
+      } else {
+        xScale.options.min = undefined;
+        xScale.options.max = undefined;
+        chart.update();
+      }
+      return;
+    }
+
+    const newMax = totalCount - 1;
+    const newMin = Math.max(0, newMax - newSpan);
+
+    if (typeof chart.zoomScale === 'function') {
+      chart.zoomScale('x', { min: newMin, max: newMax }, 'default');
+    } else {
+      xScale.options.min = newMin;
+      xScale.options.max = newMax;
+      chart.update();
     }
   };
 
   const handleResetZoom = () => {
     if (chartRef.current) {
-      chartRef.current.resetZoom();
+      if (typeof chartRef.current.resetZoom === 'function') {
+        chartRef.current.resetZoom();
+      } else if (chartRef.current.scales?.x) {
+        chartRef.current.scales.x.options.min = undefined;
+        chartRef.current.scales.x.options.max = undefined;
+        chartRef.current.update();
+      }
     }
   };
 

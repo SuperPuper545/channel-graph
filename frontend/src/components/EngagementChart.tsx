@@ -52,26 +52,94 @@ export const EngagementChart: React.FC<EngagementChartProps> = ({
   const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)';
   const textColor = isDark ? '#94a3b8' : '#64748b';
 
-  // Generate smooth ERR timeline around the baseline errRate
+  // ERR timeline across the period
   const labels = growthData.map(d => d.date);
-  const errValues = growthData.map((_, idx) => {
-    const wave = Math.sin(idx * 0.7) * 2.2;
-    const jitter = ((idx * 17) % 7) * 0.35 - 1.2;
-    return Math.max(1.0, Number((errRate + wave + jitter).toFixed(1)));
-  });
+  const errValues = growthData.map(() => errRate);
 
-  const avgErr = errValues.length > 0 ? (errValues.reduce((a, b) => a + b, 0) / errValues.length).toFixed(1) : errRate.toFixed(1);
+  const avgErr = errRate.toFixed(1);
 
   const handleZoomIn = () => {
-    if (chartRef.current) chartRef.current.zoom(1.25);
+    if (!chartRef.current) return;
+    const chart = chartRef.current;
+    const xScale = chart.scales?.x;
+    const totalCount = growthData.length;
+    if (!xScale || totalCount <= 2) return;
+
+    let currentMin = typeof xScale.min === 'number' ? xScale.min : 0;
+    let currentMax = typeof xScale.max === 'number' ? xScale.max : totalCount - 1;
+    if (isNaN(currentMin)) currentMin = 0;
+    if (isNaN(currentMax)) currentMax = totalCount - 1;
+
+    let currentSpan = currentMax - currentMin;
+    if (currentSpan <= 0 || currentSpan > totalCount - 1) {
+      currentSpan = totalCount - 1;
+    }
+
+    const newSpan = Math.max(2, Math.min(Math.round(currentSpan * 0.7), currentSpan - 1));
+    const newMax = totalCount - 1;
+    const newMin = Math.max(0, newMax - newSpan);
+
+    if (typeof chart.zoomScale === 'function') {
+      chart.zoomScale('x', { min: newMin, max: newMax }, 'default');
+    } else {
+      xScale.options.min = newMin;
+      xScale.options.max = newMax;
+      chart.update();
+    }
   };
 
   const handleZoomOut = () => {
-    if (chartRef.current) chartRef.current.zoom(0.8);
+    if (!chartRef.current) return;
+    const chart = chartRef.current;
+    const xScale = chart.scales?.x;
+    const totalCount = growthData.length;
+    if (!xScale || totalCount <= 2) return;
+
+    let currentMin = typeof xScale.min === 'number' ? xScale.min : 0;
+    let currentMax = typeof xScale.max === 'number' ? xScale.max : totalCount - 1;
+    if (isNaN(currentMin)) currentMin = 0;
+    if (isNaN(currentMax)) currentMax = totalCount - 1;
+
+    let currentSpan = currentMax - currentMin;
+    if (currentSpan <= 0 || currentSpan >= totalCount - 1) {
+      if (typeof chart.resetZoom === 'function') chart.resetZoom();
+      return;
+    }
+
+    const newSpan = Math.min(totalCount - 1, Math.max(Math.round(currentSpan * 1.4), currentSpan + 1));
+    if (newSpan >= totalCount - 1) {
+      if (typeof chart.resetZoom === 'function') {
+        chart.resetZoom();
+      } else {
+        xScale.options.min = undefined;
+        xScale.options.max = undefined;
+        chart.update();
+      }
+      return;
+    }
+
+    const newMax = totalCount - 1;
+    const newMin = Math.max(0, newMax - newSpan);
+
+    if (typeof chart.zoomScale === 'function') {
+      chart.zoomScale('x', { min: newMin, max: newMax }, 'default');
+    } else {
+      xScale.options.min = newMin;
+      xScale.options.max = newMax;
+      chart.update();
+    }
   };
 
   const handleResetZoom = () => {
-    if (chartRef.current) chartRef.current.resetZoom();
+    if (chartRef.current) {
+      if (typeof chartRef.current.resetZoom === 'function') {
+        chartRef.current.resetZoom();
+      } else if (chartRef.current.scales?.x) {
+        chartRef.current.scales.x.options.min = undefined;
+        chartRef.current.scales.x.options.max = undefined;
+        chartRef.current.update();
+      }
+    }
   };
 
   const dynamicPointRadius = growthData.length <= 8 ? 4 : growthData.length <= 15 ? 2.5 : 0;
