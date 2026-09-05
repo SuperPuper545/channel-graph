@@ -114,8 +114,12 @@ export const ContentPerformanceChart: React.FC<ContentPerformanceProps> = ({
           color: textColor,
           font: { size: 10.5, weight: 'bold' },
           callback: (value: any) => {
-            if (value >= 1000) return `${(value / 1000).toFixed(1)}k`;
-            return value;
+            const num = Number(value);
+            if (isNaN(num)) return '';
+            const abs = Math.abs(num);
+            if (abs >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+            if (abs >= 1000) return `${(num / 1000).toFixed(1)}k`;
+            return num.toLocaleString('ru-RU');
           }
         }
       }

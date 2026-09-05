@@ -627,35 +627,35 @@ export async function getLiveChannelAnalytics(
         title: 'Подписчики',
         value: channel.subscribers.toLocaleString('ru-RU'),
         change: growthPercent,
-        changeLabel: netGrowth === 0 ? 'Без изменений' : `${netGrowth > 0 ? '+' : ''}${netGrowth.toLocaleString('ru-RU')} за ${days} дн.`,
+        changeLabel: netGrowth === 0 ? 'Без изм.' : `${netGrowth > 0 ? '+' : ''}${netGrowth.toLocaleString('ru-RU')} за ${days}д`,
         trend: netGrowth > 0 ? 'up' : netGrowth < 0 ? 'down' : 'neutral'
       },
       err: {
         title: 'ERR',
         value: `${errValue}%`,
         change: 0,
-        changeLabel: totalScrapedViews > 0 ? 'По реальным постам' : 'Без данных',
+        changeLabel: totalScrapedViews > 0 ? `По ${parsedPosts.length} постам` : 'Без данных',
         trend: 'neutral'
       },
       growth: {
         title: 'Прирост',
         value: `${netGrowth > 0 ? '+' : ''}${netGrowth.toLocaleString('ru-RU')}`,
         change: growthPercent,
-        changeLabel: netGrowth === 0 ? 'Без изменений' : `${growthPercent >= 0 ? '+' : ''}${growthPercent}% за период`,
+        changeLabel: netGrowth === 0 ? 'Без изм.' : `${growthPercent >= 0 ? '+' : ''}${growthPercent}%`,
         trend: netGrowth > 0 ? 'up' : netGrowth < 0 ? 'down' : 'neutral'
       },
       avgReach: {
         title: 'Охват поста',
         value: baseViews.toLocaleString('ru-RU'),
         change: 0,
-        changeLabel: baseViews > 0 ? `${Math.round((baseViews / Math.max(1, channel.subscribers)) * 100)}% от аудитории` : '0% от аудитории',
+        changeLabel: baseViews > 0 ? `${Math.round((baseViews / Math.max(1, channel.subscribers)) * 100)}% охват` : '0% охват',
         trend: 'neutral'
       },
       citationIndex: {
         title: 'Индекс ИЦ',
         value: icValue,
         change: 0,
-        changeLabel: totalShares > 0 ? `${totalShares.toLocaleString('ru-RU')} репостов` : '0 упоминаний',
+        changeLabel: totalShares > 0 ? `${totalShares.toLocaleString('ru-RU')} репостов` : '0 репостов',
         trend: icValue > 0 ? 'up' : 'neutral'
       },
       totalViews: {

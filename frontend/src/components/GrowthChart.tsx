@@ -273,10 +273,10 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
           color: gridColor
         },
         suggestedMin: mode === 'total' && (data.length > 0 && Math.min(...data.map(d => d.subscribers)) === Math.max(...data.map(d => d.subscribers)))
-          ? Math.max(0, Math.min(...data.map(d => d.subscribers)) - 3)
+          ? 0
           : undefined,
         suggestedMax: mode === 'total' && (data.length > 0 && Math.min(...data.map(d => d.subscribers)) === Math.max(...data.map(d => d.subscribers)))
-          ? Math.max(...data.map(d => d.subscribers)) + 3
+          ? Math.ceil(Math.max(...data.map(d => d.subscribers)) * 1.25)
           : undefined,
         ticks: {
           color: textColor,
