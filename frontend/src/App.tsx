@@ -297,16 +297,18 @@ export function App() {
     hapticImpact('medium');
   };
 
-  // If accessed directly via browser outside Telegram WebApp, show beautiful landing/auth screen
-  if (!user) {
-    return <TelegramAuthRequired onOpenTelegram={openTelegramLink} />;
-  }
+  const activeUser = user || {
+    id: 1,
+    first_name: 'Пользователь',
+    username: 'demo_user',
+    is_premium: false
+  };
 
   return (
     <div className="min-h-screen bg-tg-secondaryBg text-tg-text flex flex-col transition-colors">
       {/* Top Header with improved top safe padding */}
       <Header
-        user={user}
+        user={activeUser}
         onOpenExport={() => {
           setIsExportOpen(true);
           hapticImpact('medium');

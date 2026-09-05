@@ -58,7 +58,12 @@ export function useTelegram() {
       if (tg.initDataUnsafe?.user) {
         setUser(tg.initDataUnsafe.user);
       } else {
-        setUser(null);
+        setUser({
+          id: 1,
+          first_name: 'Пользователь',
+          username: 'demo_user',
+          is_premium: false
+        });
       }
 
       setIsReady(true);
@@ -67,7 +72,12 @@ export function useTelegram() {
         tg.offEvent('themeChanged', applyTheme);
       };
     } else {
-      setUser(null);
+      setUser({
+        id: 1,
+        first_name: 'Пользователь',
+        username: 'demo_user',
+        is_premium: false
+      });
       setIsReady(true);
     }
   }, [tg, applyTheme]);
