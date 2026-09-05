@@ -15,7 +15,7 @@ import {
 import zoomPlugin from 'chartjs-plugin-zoom';
 import { Line, Bar } from 'react-chartjs-2';
 import { GrowthPoint } from '../types';
-import { UserPlus, UserMinus, TrendingUp, ZoomIn, ZoomOut, RotateCcw, BarChart2, LineChart as LineIcon } from 'lucide-react';
+import { UserPlus, UserMinus, TrendingUp, ZoomIn, ZoomOut, RotateCcw, BarChart2, LineChart as LineIcon, ChevronDown, ChevronUp } from 'lucide-react';
 
 ChartJS.register(
   CategoryScale,
@@ -33,9 +33,20 @@ ChartJS.register(
 interface GrowthChartProps {
   data: GrowthPoint[];
   colorScheme: 'light' | 'dark';
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 }
 
-export const GrowthChart: React.FC<GrowthChartProps> = ({ data, colorScheme }) => {
+export const GrowthChart: React.FC<GrowthChartProps> = ({
+  data,
+  colorScheme,
+  isExpanded: externalIsExpanded,
+  onToggleExpand
+}) => {
+  const [internalExpanded, setInternalExpanded] = useState(false);
+  const isExpanded = externalIsExpanded !== undefined ? externalIsExpanded : internalExpanded;
+  const toggleExpand = onToggleExpand || (() => setInternalExpanded(prev => !prev));
+
   const chartRef = useRef<any>(null);
   const [mode, setMode] = useState<'total' | 'daily'>('total');
   const isDark = colorScheme === 'dark';
@@ -223,94 +234,162 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({ data, colorScheme }) =
   };
 
   return (
-    <div id="growth-chart-block" className="stat-card p-4 space-y-3">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-500">
-            <TrendingUp className="w-4 h-4" />
+    <div id="growth-chart-block" className="stat-card p-3.5 sm:p-4 space-y-3 transition-all">
+      {/* Header / Collapsible trigger */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div 
+          onClick={toggleExpand}
+          className="flex items-center justify-between sm:justify-start gap-2 cursor-pointer select-none group"
+        >
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-500 group-hover:scale-105 transition-transform">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-tg-text">Динамика аудитории</h3>
+                {!isExpanded && (
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                    netGrowth >= 0 ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                  }`}>
+                    {netGrowth >= 0 ? `+${netGrowth.toLocaleString('ru-RU')}` : `${netGrowth.toLocaleString('ru-RU')}`}
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-tg-hint">Приток, отток и чистый рост</p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-sm font-bold text-tg-text">Динамика аудитории</h3>
-            <p className="text-[11px] text-tg-hint">Приток, отток и чистый рост</p>
-          </div>
+
+          {/* Collapsed quick toggle button for mobile */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleExpand();
+            }}
+            className="sm:hidden p-1.5 rounded-lg bg-tg-secondaryBg border border-tg-border text-tg-hint hover:text-tg-text"
+          >
+            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
         </div>
 
-        {/* View Mode & Zoom Controls */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {/* Mode Switcher */}
-          <div className="flex items-center p-0.5 bg-tg-secondaryBg border border-tg-border rounded-xl text-xs font-semibold">
-            <button
-              onClick={() => setMode('total')}
-              className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all ${
-                mode === 'total' ? 'bg-tg-card text-blue-500 shadow-sm' : 'text-tg-hint hover:text-tg-text'
-              }`}
-              title="Общая динамика подписчиков"
-            >
-              <LineIcon className="w-3 h-3" />
-              <span>Общие</span>
-            </button>
-            <button
-              onClick={() => setMode('daily')}
-              className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all ${
-                mode === 'daily' ? 'bg-tg-card text-blue-500 shadow-sm' : 'text-tg-hint hover:text-tg-text'
-              }`}
-              title="Ежедневный приток и отток"
-            >
-              <BarChart2 className="w-3 h-3" />
-              <span>Прирост</span>
-            </button>
-          </div>
+        {/* View Mode & Zoom Controls (when expanded) or Summary Badges & Expand Button (when collapsed) */}
+        <div className="flex items-center gap-1.5 flex-wrap justify-between sm:justify-end">
+          {isExpanded ? (
+            <>
+              {/* Mode Switcher */}
+              <div className="flex items-center p-0.5 bg-tg-secondaryBg border border-tg-border rounded-xl text-xs font-semibold">
+                <button
+                  onClick={() => setMode('total')}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all ${
+                    mode === 'total' ? 'bg-tg-card text-blue-500 shadow-sm' : 'text-tg-hint hover:text-tg-text'
+                  }`}
+                  title="Общая динамика подписчиков"
+                >
+                  <LineIcon className="w-3 h-3" />
+                  <span>Общие</span>
+                </button>
+                <button
+                  onClick={() => setMode('daily')}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all ${
+                    mode === 'daily' ? 'bg-tg-card text-blue-500 shadow-sm' : 'text-tg-hint hover:text-tg-text'
+                  }`}
+                  title="Ежедневный приток и отток"
+                >
+                  <BarChart2 className="w-3 h-3" />
+                  <span>Прирост</span>
+                </button>
+              </div>
 
-          {/* Zoom Buttons */}
-          <div className="flex items-center bg-tg-secondaryBg border border-tg-border rounded-xl p-0.5">
-            <button
-              onClick={handleZoomIn}
-              className="p-1 rounded-lg hover:bg-tg-card text-tg-hint hover:text-tg-text transition-colors"
-              title="Увеличить масштаб"
-            >
-              <ZoomIn className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={handleZoomOut}
-              className="p-1 rounded-lg hover:bg-tg-card text-tg-hint hover:text-tg-text transition-colors"
-              title="Уменьшить масштаб"
-            >
-              <ZoomOut className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={handleResetZoom}
-              className="p-1 rounded-lg hover:bg-tg-card text-tg-hint hover:text-tg-text transition-colors"
-              title="Сбросить масштаб"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-            </button>
-          </div>
+              {/* Zoom Buttons */}
+              <div className="flex items-center bg-tg-secondaryBg border border-tg-border rounded-xl p-0.5">
+                <button
+                  onClick={handleZoomIn}
+                  className="p-1 rounded-lg hover:bg-tg-card text-tg-hint hover:text-tg-text transition-colors"
+                  title="Увеличить масштаб"
+                >
+                  <ZoomIn className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={handleZoomOut}
+                  className="p-1 rounded-lg hover:bg-tg-card text-tg-hint hover:text-tg-text transition-colors"
+                  title="Уменьшить масштаб"
+                >
+                  <ZoomOut className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={handleResetZoom}
+                  className="p-1 rounded-lg hover:bg-tg-card text-tg-hint hover:text-tg-text transition-colors"
+                  title="Сбросить масштаб"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </button>
+              </div>
 
-          <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 font-semibold border border-emerald-500/20 text-xs">
-            <UserPlus className="w-3 h-3" />
-            <span>+{totalJoined.toLocaleString('ru-RU')}</span>
-          </div>
-          <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-rose-500/10 text-rose-500 font-semibold border border-rose-500/20 text-xs">
-            <UserMinus className="w-3 h-3" />
-            <span>-{totalLeft.toLocaleString('ru-RU')}</span>
-          </div>
+              <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 font-semibold border border-emerald-500/20 text-xs">
+                <UserPlus className="w-3 h-3" />
+                <span>+{totalJoined.toLocaleString('ru-RU')}</span>
+              </div>
+              <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-rose-500/10 text-rose-500 font-semibold border border-rose-500/20 text-xs">
+                <UserMinus className="w-3 h-3" />
+                <span>-{totalLeft.toLocaleString('ru-RU')}</span>
+              </div>
+
+              {/* Desktop Collapse button */}
+              <button
+                type="button"
+                onClick={toggleExpand}
+                className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-xl bg-tg-secondaryBg border border-tg-border text-xs font-semibold text-tg-hint hover:text-tg-text transition-all active:scale-95"
+              >
+                <span>Свернуть</span>
+                <ChevronUp className="w-3.5 h-3.5" />
+              </button>
+            </>
+          ) : (
+            <div className="flex items-center gap-1.5 w-full sm:w-auto justify-between sm:justify-end">
+              <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-500 font-semibold border border-emerald-500/20 text-[11px]">
+                  <UserPlus className="w-3 h-3" />
+                  <span>+{totalJoined.toLocaleString('ru-RU')}</span>
+                </div>
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-rose-500/10 text-rose-500 font-semibold border border-rose-500/20 text-[11px]">
+                  <UserMinus className="w-3 h-3" />
+                  <span>-{totalLeft.toLocaleString('ru-RU')}</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={toggleExpand}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/20 text-xs font-bold hover:bg-blue-500/20 transition-all active:scale-95"
+              >
+                <span>Развернуть</span>
+                <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="h-64 w-full relative touch-pan-x">
-        {mode === 'total' ? (
-          <Line ref={chartRef} data={lineChartData} options={options} />
-        ) : (
-          <Bar ref={chartRef} data={barChartData} options={options} />
-        )}
-      </div>
+      {/* Expanded Chart Body */}
+      {isExpanded && (
+        <div className="space-y-3 pt-1 animate-fade-in">
+          <div className="h-64 w-full relative touch-pan-x">
+            {mode === 'total' ? (
+              <Line ref={chartRef} data={lineChartData} options={options} />
+            ) : (
+              <Bar ref={chartRef} data={barChartData} options={options} />
+            )}
+          </div>
 
-      <div className="pt-2 border-t border-tg-border flex items-center justify-between text-[11px] text-tg-hint">
-        <span className="text-[10px] text-tg-hint">💡 Зажмите и перетаскивайте для перемещения</span>
-        <span className={`font-bold ${netGrowth >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-          Чистый прирост: {netGrowth >= 0 ? `+${netGrowth.toLocaleString('ru-RU')}` : `${netGrowth.toLocaleString('ru-RU')}`}
-        </span>
-      </div>
+          <div className="pt-2 border-t border-tg-border flex items-center justify-between text-[11px] text-tg-hint">
+            <span className="text-[10px] text-tg-hint">💡 Зажмите и перетаскивайте для перемещения</span>
+            <span className={`font-bold ${netGrowth >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+              Чистый прирост: {netGrowth >= 0 ? `+${netGrowth.toLocaleString('ru-RU')}` : `${netGrowth.toLocaleString('ru-RU')}`}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

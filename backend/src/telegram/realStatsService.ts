@@ -246,18 +246,22 @@ export async function fetchLiveTelegramChannel(
       const title = titleMatch ? titleMatch[1].trim() : cleanUsername;
 
       let subscribers = 15000;
-      const subsMatch = html.match(/<div class="tgme_page_extra">([^<]+)<\/div>/i);
+      const subsMatch = html.match(/<span class="counter_value">([^<]+)<\/span>/i) ||
+                        html.match(/<div class="tgme_header_counter">([^<]+)<\/div>/i) ||
+                        html.match(/<div class="tgme_page_extra">([^<]+)<\/div>/i);
       if (subsMatch) {
-        const extraText = subsMatch[1];
-        const numMatch = extraText.match(/([\d\s]+)\s*(subscribers|подписчик|members)/i);
-        if (numMatch) {
-          subscribers = parseInt(numMatch[1].replace(/\s/g, ''), 10) || 15000;
-        } else if (extraText.includes('K')) {
-          const kMatch = extraText.match(/([\d\.]+)\s*K/i);
+        const extraText = subsMatch[1].trim();
+        if (extraText.includes('K') || extraText.includes('k') || extraText.includes('К') || extraText.includes('к')) {
+          const kMatch = extraText.match(/([\d\.]+)/i);
           if (kMatch) subscribers = Math.round(parseFloat(kMatch[1]) * 1000);
-        } else if (extraText.includes('M')) {
-          const mMatch = extraText.match(/([\d\.]+)\s*M/i);
+        } else if (extraText.includes('M') || extraText.includes('m') || extraText.includes('М') || extraText.includes('м')) {
+          const mMatch = extraText.match(/([\d\.]+)/i);
           if (mMatch) subscribers = Math.round(parseFloat(mMatch[1]) * 1000000);
+        } else {
+          const numMatch = extraText.match(/([\d\s]+)/i);
+          if (numMatch) {
+            subscribers = parseInt(numMatch[1].replace(/\s/g, ''), 10) || 15000;
+          }
         }
       }
 

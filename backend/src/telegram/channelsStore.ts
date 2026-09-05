@@ -1,13 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 import { ChannelOverview } from './statsService.js';
+import { getResolvedDataDir } from './dataStoreUtils.js';
 
-const DATA_DIR = path.resolve(process.cwd(), 'data');
-const CHANNELS_FILE = path.join(DATA_DIR, 'channels.json');
-
-// Ensure data directory exists
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+function getChannelsFilePath(): string {
+  return path.join(getResolvedDataDir(), 'channels.json');
 }
 
 export interface StoredChannel extends ChannelOverview {
@@ -31,9 +28,10 @@ export const DEFAULT_CHANNELS: StoredChannel[] = [
 ];
 
 function readAllChannels(): StoredChannel[] {
+  const filePath = getChannelsFilePath();
   try {
-    if (fs.existsSync(CHANNELS_FILE)) {
-      const data = fs.readFileSync(CHANNELS_FILE, 'utf-8');
+    if (fs.existsSync(filePath)) {
+      const data = fs.readFileSync(filePath, 'utf-8');
       const list = JSON.parse(data);
       if (Array.isArray(list)) {
         // Clean any old mock channels
@@ -71,8 +69,9 @@ export function loadStoredChannels(userId?: number): StoredChannel[] {
 }
 
 export function saveStoredChannels(channels: StoredChannel[]): void {
+  const filePath = getChannelsFilePath();
   try {
-    fs.writeFileSync(CHANNELS_FILE, JSON.stringify(channels, null, 2), 'utf-8');
+    fs.writeFileSync(filePath, JSON.stringify(channels, null, 2), 'utf-8');
   } catch (err) {
     console.error('Error writing channels.json:', err);
   }

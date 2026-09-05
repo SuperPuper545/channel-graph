@@ -13,7 +13,7 @@ import zoomPlugin from 'chartjs-plugin-zoom';
 import { Bar } from 'react-chartjs-2';
 import { ViewsPoint } from '../types';
 import { shiftHourlyDataToLocal, getUserTimezoneInfo } from '../utils/timezone';
-import { Eye, Clock, Calendar, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { Eye, Clock, Calendar, ZoomIn, ZoomOut, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
 
 ChartJS.register(
   CategoryScale,
@@ -29,13 +29,21 @@ interface ViewsChartProps {
   dailyData: ViewsPoint[];
   hourlyData: ViewsPoint[];
   colorScheme: 'light' | 'dark';
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 }
 
 export const ViewsChart: React.FC<ViewsChartProps> = ({
   dailyData,
   hourlyData,
-  colorScheme
+  colorScheme,
+  isExpanded: externalIsExpanded,
+  onToggleExpand
 }) => {
+  const [internalExpanded, setInternalExpanded] = useState(false);
+  const isExpanded = externalIsExpanded !== undefined ? externalIsExpanded : internalExpanded;
+  const toggleExpand = onToggleExpand || (() => setInternalExpanded(prev => !prev));
+
   const chartRef = useRef<ChartJS<'bar'>>(null);
   const [viewMode, setViewMode] = useState<'daily' | 'hourly'>('daily');
   const isDark = colorScheme === 'dark';
@@ -175,82 +183,141 @@ export const ViewsChart: React.FC<ViewsChartProps> = ({
   };
 
   return (
-    <div id="views-chart-block" className="stat-card p-4 space-y-3">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-500">
-            <Eye className="w-4 h-4" />
+    <div id="views-chart-block" className="stat-card p-3.5 sm:p-4 space-y-3 transition-all">
+      {/* Header / Collapsible trigger */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div 
+          onClick={toggleExpand}
+          className="flex items-center justify-between sm:justify-start gap-2 cursor-pointer select-none group"
+        >
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-500 group-hover:scale-105 transition-transform">
+              <Eye className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-tg-text">Охват & Просмотры</h3>
+                {!isExpanded && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+                    24ч & дни
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-tg-hint">
+                {viewMode === 'daily' ? 'Динамика просмотров по дням' : 'Пиковые часы активности аудитории (24ч)'}
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-sm font-bold text-tg-text">Охват & Просмотры</h3>
-            <p className="text-[11px] text-tg-hint">
-              {viewMode === 'daily' ? 'Динамика просмотров по дням' : 'Пиковые часы активности аудитории (24ч)'}
-            </p>
-          </div>
+
+          {/* Collapsed quick toggle button for mobile */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleExpand();
+            }}
+            className="sm:hidden p-1.5 rounded-lg bg-tg-secondaryBg border border-tg-border text-tg-hint hover:text-tg-text"
+          >
+            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
         </div>
 
-        {/* View Mode Toggle & Zoom */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {/* Zoom Buttons */}
-          <div className="flex items-center bg-tg-secondaryBg border border-tg-border rounded-xl p-0.5">
-            <button
-              onClick={handleZoomIn}
-              className="p-1 rounded-lg hover:bg-tg-card text-tg-hint hover:text-tg-text transition-colors"
-              title="Увеличить"
-            >
-              <ZoomIn className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={handleZoomOut}
-              className="p-1 rounded-lg hover:bg-tg-card text-tg-hint hover:text-tg-text transition-colors"
-              title="Уменьшить"
-            >
-              <ZoomOut className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={handleResetZoom}
-              className="p-1 rounded-lg hover:bg-tg-card text-tg-hint hover:text-tg-text transition-colors"
-              title="Сбросить"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-            </button>
-          </div>
+        {/* View Mode Toggle & Zoom (when expanded) or Summary Badge & Expand Button (when collapsed) */}
+        <div className="flex items-center gap-1.5 flex-wrap justify-between sm:justify-end">
+          {isExpanded ? (
+            <>
+              {/* Zoom Buttons */}
+              <div className="flex items-center bg-tg-secondaryBg border border-tg-border rounded-xl p-0.5">
+                <button
+                  onClick={handleZoomIn}
+                  className="p-1 rounded-lg hover:bg-tg-card text-tg-hint hover:text-tg-text transition-colors"
+                  title="Увеличить"
+                >
+                  <ZoomIn className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={handleZoomOut}
+                  className="p-1 rounded-lg hover:bg-tg-card text-tg-hint hover:text-tg-text transition-colors"
+                  title="Уменьшить"
+                >
+                  <ZoomOut className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={handleResetZoom}
+                  className="p-1 rounded-lg hover:bg-tg-card text-tg-hint hover:text-tg-text transition-colors"
+                  title="Сбросить"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </button>
+              </div>
 
-          <div className="flex items-center p-0.5 bg-tg-secondaryBg border border-tg-border rounded-xl text-xs font-semibold">
-            <button
-              onClick={() => setViewMode('daily')}
-              className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all ${
-                viewMode === 'daily'
-                  ? 'bg-tg-card text-blue-500 shadow-sm'
-                  : 'text-tg-hint hover:text-tg-text'
-              }`}
-            >
-              <Calendar className="w-3 h-3" />
-              <span>Дни</span>
-            </button>
-            <button
-              onClick={() => setViewMode('hourly')}
-              className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all ${
-                viewMode === 'hourly'
-                  ? 'bg-tg-card text-blue-500 shadow-sm'
-                  : 'text-tg-hint hover:text-tg-text'
-              }`}
-            >
-              <Clock className="w-3 h-3" />
-              <span>Часы</span>
-            </button>
-          </div>
+              <div className="flex items-center p-0.5 bg-tg-secondaryBg border border-tg-border rounded-xl text-xs font-semibold">
+                <button
+                  onClick={() => setViewMode('daily')}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all ${
+                    viewMode === 'daily'
+                      ? 'bg-tg-card text-blue-500 shadow-sm'
+                      : 'text-tg-hint hover:text-tg-text'
+                  }`}
+                >
+                  <Calendar className="w-3 h-3" />
+                  <span>Дни</span>
+                </button>
+                <button
+                  onClick={() => setViewMode('hourly')}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all ${
+                    viewMode === 'hourly'
+                      ? 'bg-tg-card text-blue-500 shadow-sm'
+                      : 'text-tg-hint hover:text-tg-text'
+                  }`}
+                >
+                  <Clock className="w-3 h-3" />
+                  <span>Часы</span>
+                </button>
+              </div>
+
+              {/* Desktop Collapse button */}
+              <button
+                type="button"
+                onClick={toggleExpand}
+                className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-xl bg-tg-secondaryBg border border-tg-border text-xs font-semibold text-tg-hint hover:text-tg-text transition-all active:scale-95"
+              >
+                <span>Свернуть</span>
+                <ChevronUp className="w-3.5 h-3.5" />
+              </button>
+            </>
+          ) : (
+            <div className="flex items-center gap-1.5 w-full sm:w-auto justify-between sm:justify-end">
+              <span className="text-[11px] font-medium text-indigo-500 truncate max-w-[170px] sm:max-w-none">
+                Пик: {peakTimeStr.split(' ')[0]}
+              </span>
+
+              <button
+                type="button"
+                onClick={toggleExpand}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 text-xs font-bold hover:bg-indigo-500/20 transition-all active:scale-95"
+              >
+                <span>Развернуть</span>
+                <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="h-64 w-full relative touch-pan-x">
-        <Bar ref={chartRef} data={chartData} options={options} />
-      </div>
+      {/* Expanded Chart Body */}
+      {isExpanded && (
+        <div className="space-y-3 pt-1 animate-fade-in">
+          <div className="h-64 w-full relative touch-pan-x">
+            <Bar ref={chartRef} data={chartData} options={options} />
+          </div>
 
-      <div className="pt-2 border-t border-tg-border flex items-center justify-between text-[11px] text-tg-hint">
-        <span>Пик просмотров:</span>
-        <span className="font-bold text-indigo-500">{peakTimeStr}</span>
-      </div>
+          <div className="pt-2 border-t border-tg-border flex items-center justify-between text-[11px] text-tg-hint">
+            <span>Пик просмотров:</span>
+            <span className="font-bold text-indigo-500">{peakTimeStr}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

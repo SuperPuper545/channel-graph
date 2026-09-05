@@ -1,0 +1,819 @@
+{
+  "@durov": {
+    "channelId": "@durov",
+    "username": "durov",
+    "title": "Pavel Durov",
+    "firstTrackedAt": "2026-09-04T22:35:15.205Z",
+    "lastUpdatedAt": "2026-09-04T22:35:15.205Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:15.205Z",
+        "date": "2026-09-04",
+        "subscribers": 10900000,
+        "joined": 0,
+        "left": 0,
+        "views": 3815000,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@telegram": {
+    "channelId": "@telegram",
+    "username": "telegram",
+    "title": "Telegram News",
+    "firstTrackedAt": "2026-09-04T22:35:16.709Z",
+    "lastUpdatedAt": "2026-09-04T22:35:16.709Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:16.709Z",
+        "date": "2026-09-04",
+        "subscribers": 9640000,
+        "joined": 0,
+        "left": 0,
+        "views": 3374000,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@breakingmash": {
+    "channelId": "@breakingmash",
+    "username": "breakingmash",
+    "title": "Mash",
+    "firstTrackedAt": "2026-09-04T22:35:18.205Z",
+    "lastUpdatedAt": "2026-09-04T22:35:18.205Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:18.205Z",
+        "date": "2026-09-04",
+        "subscribers": 3110000,
+        "joined": 0,
+        "left": 0,
+        "views": 1088500,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@rian_ru": {
+    "channelId": "@rian_ru",
+    "username": "rian_ru",
+    "title": "Telegram: Contact @rian_ru",
+    "firstTrackedAt": "2026-09-04T22:35:19.772Z",
+    "lastUpdatedAt": "2026-09-04T22:35:19.772Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:19.772Z",
+        "date": "2026-09-04",
+        "subscribers": 15000,
+        "joined": 0,
+        "left": 0,
+        "views": 5250,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@bazabazon": {
+    "channelId": "@bazabazon",
+    "username": "bazabazon",
+    "title": "Baza",
+    "firstTrackedAt": "2026-09-04T22:35:21.357Z",
+    "lastUpdatedAt": "2026-09-04T22:35:21.357Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:21.357Z",
+        "date": "2026-09-04",
+        "subscribers": 1540000,
+        "joined": 0,
+        "left": 0,
+        "views": 539000,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@readovkanews": {
+    "channelId": "@readovkanews",
+    "username": "readovkanews",
+    "title": "Readovka",
+    "firstTrackedAt": "2026-09-04T22:35:23.018Z",
+    "lastUpdatedAt": "2026-09-04T22:35:23.018Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:23.018Z",
+        "date": "2026-09-04",
+        "subscribers": 2010000,
+        "joined": 0,
+        "left": 0,
+        "views": 703500,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@rbc_news": {
+    "channelId": "@rbc_news",
+    "username": "rbc_news",
+    "title": "РБК. Новости. Главное",
+    "firstTrackedAt": "2026-09-04T22:35:24.541Z",
+    "lastUpdatedAt": "2026-09-04T22:35:24.541Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:24.541Z",
+        "date": "2026-09-04",
+        "subscribers": 901000,
+        "joined": 0,
+        "left": 0,
+        "views": 315350,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@topor": {
+    "channelId": "@topor",
+    "username": "topor",
+    "title": "ТОПОР - Горячие новости",
+    "firstTrackedAt": "2026-09-04T22:35:25.960Z",
+    "lastUpdatedAt": "2026-09-04T22:35:25.960Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:25.960Z",
+        "date": "2026-09-04",
+        "subscribers": 1300000,
+        "joined": 0,
+        "left": 0,
+        "views": 455000,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@bloodysx": {
+    "channelId": "@bloodysx",
+    "username": "bloodysx",
+    "title": "Кровавая барыня",
+    "firstTrackedAt": "2026-09-04T22:35:27.400Z",
+    "lastUpdatedAt": "2026-09-04T22:35:27.400Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:27.400Z",
+        "date": "2026-09-04",
+        "subscribers": 1160000,
+        "joined": 0,
+        "left": 0,
+        "views": 406000,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@varlamov_news": {
+    "channelId": "@varlamov_news",
+    "username": "varlamov_news",
+    "title": "Varlamov News",
+    "firstTrackedAt": "2026-09-04T22:35:28.811Z",
+    "lastUpdatedAt": "2026-09-04T22:35:28.811Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:28.811Z",
+        "date": "2026-09-04",
+        "subscribers": 1050000,
+        "joined": 0,
+        "left": 0,
+        "views": 367500,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@shot_shot": {
+    "channelId": "@shot_shot",
+    "username": "shot_shot",
+    "title": "SHOT",
+    "firstTrackedAt": "2026-09-04T22:35:30.332Z",
+    "lastUpdatedAt": "2026-09-04T22:35:30.332Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:30.332Z",
+        "date": "2026-09-04",
+        "subscribers": 1260000,
+        "joined": 0,
+        "left": 0,
+        "views": 441000,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@ostorozhno_novosti": {
+    "channelId": "@ostorozhno_novosti",
+    "username": "ostorozhno_novosti",
+    "title": "Осторожно, новости",
+    "firstTrackedAt": "2026-09-04T22:35:31.728Z",
+    "lastUpdatedAt": "2026-09-04T22:35:31.728Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:31.728Z",
+        "date": "2026-09-04",
+        "subscribers": 1610000,
+        "joined": 0,
+        "left": 0,
+        "views": 563500,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@meduzalive": {
+    "channelId": "@meduzalive",
+    "username": "meduzalive",
+    "title": "Медуза — LIVE",
+    "firstTrackedAt": "2026-09-04T22:35:33.174Z",
+    "lastUpdatedAt": "2026-09-04T22:35:33.174Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:33.174Z",
+        "date": "2026-09-04",
+        "subscribers": 1110000,
+        "joined": 0,
+        "left": 0,
+        "views": 388500,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@kodaboroda": {
+    "channelId": "@kodaboroda",
+    "username": "kodaboroda",
+    "title": "Telegram: Contact @kodaboroda",
+    "firstTrackedAt": "2026-09-04T22:35:34.750Z",
+    "lastUpdatedAt": "2026-09-04T22:35:34.750Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:34.750Z",
+        "date": "2026-09-04",
+        "subscribers": 15000,
+        "joined": 0,
+        "left": 0,
+        "views": 5250,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@habr_com": {
+    "channelId": "@habr_com",
+    "username": "habr_com",
+    "title": "Хабр",
+    "firstTrackedAt": "2026-09-04T22:35:36.459Z",
+    "lastUpdatedAt": "2026-09-04T22:35:36.459Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:36.459Z",
+        "date": "2026-09-04",
+        "subscribers": 132000,
+        "joined": 0,
+        "left": 0,
+        "views": 46200,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@tproger": {
+    "channelId": "@tproger",
+    "username": "tproger",
+    "title": "Типичный программист",
+    "firstTrackedAt": "2026-09-04T22:35:37.984Z",
+    "lastUpdatedAt": "2026-09-04T22:35:37.984Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:37.984Z",
+        "date": "2026-09-04",
+        "subscribers": 78600,
+        "joined": 0,
+        "left": 0,
+        "views": 27510,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@tginfo": {
+    "channelId": "@tginfo",
+    "username": "tginfo",
+    "title": "Telegram Info",
+    "firstTrackedAt": "2026-09-04T22:35:39.572Z",
+    "lastUpdatedAt": "2026-09-04T22:35:39.572Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:39.572Z",
+        "date": "2026-09-04",
+        "subscribers": 83000,
+        "joined": 0,
+        "left": 0,
+        "views": 29050,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@rozetked": {
+    "channelId": "@rozetked",
+    "username": "rozetked",
+    "title": "Rozetked",
+    "firstTrackedAt": "2026-09-04T22:35:40.991Z",
+    "lastUpdatedAt": "2026-09-04T22:35:40.991Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:40.991Z",
+        "date": "2026-09-04",
+        "subscribers": 660000,
+        "joined": 0,
+        "left": 0,
+        "views": 231000,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@wylsacom": {
+    "channelId": "@wylsacom",
+    "username": "wylsacom",
+    "title": "Telegram: Contact @wylsacom",
+    "firstTrackedAt": "2026-09-04T22:35:42.558Z",
+    "lastUpdatedAt": "2026-09-04T22:35:42.558Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:42.558Z",
+        "date": "2026-09-04",
+        "subscribers": 15000,
+        "joined": 0,
+        "left": 0,
+        "views": 5250,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@droidergram": {
+    "channelId": "@droidergram",
+    "username": "droidergram",
+    "title": "Droider",
+    "firstTrackedAt": "2026-09-04T22:35:44.348Z",
+    "lastUpdatedAt": "2026-09-04T22:35:44.348Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:44.348Z",
+        "date": "2026-09-04",
+        "subscribers": 104000,
+        "joined": 0,
+        "left": 0,
+        "views": 36400,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@exploitex": {
+    "channelId": "@exploitex",
+    "username": "exploitex",
+    "title": "Эксплойт",
+    "firstTrackedAt": "2026-09-04T22:35:45.895Z",
+    "lastUpdatedAt": "2026-09-04T22:35:45.895Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:45.895Z",
+        "date": "2026-09-04",
+        "subscribers": 2030000,
+        "joined": 0,
+        "left": 0,
+        "views": 710500,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@tproger_dev": {
+    "channelId": "@tproger_dev",
+    "username": "tproger_dev",
+    "title": "TP_DEV",
+    "firstTrackedAt": "2026-09-04T22:35:47.251Z",
+    "lastUpdatedAt": "2026-09-04T22:35:47.251Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:47.251Z",
+        "date": "2026-09-04",
+        "subscribers": 4,
+        "joined": 0,
+        "left": 0,
+        "views": 1,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@proglibrary": {
+    "channelId": "@proglibrary",
+    "username": "proglibrary",
+    "title": "Библиотека программиста",
+    "firstTrackedAt": "2026-09-04T22:35:48.750Z",
+    "lastUpdatedAt": "2026-09-04T22:35:48.750Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:48.750Z",
+        "date": "2026-09-04",
+        "subscribers": 78400,
+        "joined": 0,
+        "left": 0,
+        "views": 27440,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@toncoin": {
+    "channelId": "@toncoin",
+    "username": "toncoin",
+    "title": "Gram of TON",
+    "firstTrackedAt": "2026-09-04T22:35:50.170Z",
+    "lastUpdatedAt": "2026-09-04T22:35:50.170Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:50.170Z",
+        "date": "2026-09-04",
+        "subscribers": 6820000,
+        "joined": 0,
+        "left": 0,
+        "views": 2387000,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@forklog": {
+    "channelId": "@forklog",
+    "username": "forklog",
+    "title": "ForkLog",
+    "firstTrackedAt": "2026-09-04T22:35:51.605Z",
+    "lastUpdatedAt": "2026-09-04T22:35:51.605Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:51.605Z",
+        "date": "2026-09-04",
+        "subscribers": 92700,
+        "joined": 0,
+        "left": 0,
+        "views": 32445,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@decenter": {
+    "channelId": "@decenter",
+    "username": "decenter",
+    "title": "DeCenter — блокчейн, биткоин, инвестиции",
+    "firstTrackedAt": "2026-09-04T22:35:53.009Z",
+    "lastUpdatedAt": "2026-09-04T22:35:53.009Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:53.009Z",
+        "date": "2026-09-04",
+        "subscribers": 1870000,
+        "joined": 0,
+        "left": 0,
+        "views": 654500,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@binance_russian": {
+    "channelId": "@binance_russian",
+    "username": "binance_russian",
+    "title": "Telegram: Contact @binance_russian",
+    "firstTrackedAt": "2026-09-04T22:35:54.594Z",
+    "lastUpdatedAt": "2026-09-04T22:35:54.594Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:54.594Z",
+        "date": "2026-09-04",
+        "subscribers": 15000,
+        "joined": 0,
+        "left": 0,
+        "views": 5250,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@incrypted": {
+    "channelId": "@incrypted",
+    "username": "incrypted",
+    "title": "Incrypted",
+    "firstTrackedAt": "2026-09-04T22:35:56.481Z",
+    "lastUpdatedAt": "2026-09-04T22:35:56.481Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:56.481Z",
+        "date": "2026-09-04",
+        "subscribers": 108000,
+        "joined": 0,
+        "left": 0,
+        "views": 37800,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@coin_post": {
+    "channelId": "@coin_post",
+    "username": "coin_post",
+    "title": "Coin Post – Деньги, инвестиции, биткоин",
+    "firstTrackedAt": "2026-09-04T22:35:58.336Z",
+    "lastUpdatedAt": "2026-09-04T22:35:58.336Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:58.336Z",
+        "date": "2026-09-04",
+        "subscribers": 293000,
+        "joined": 0,
+        "left": 0,
+        "views": 102550,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@crypto_attack": {
+    "channelId": "@crypto_attack",
+    "username": "crypto_attack",
+    "title": "CryptoAttack 👑 KingsGuard 👑",
+    "firstTrackedAt": "2026-09-04T22:35:59.954Z",
+    "lastUpdatedAt": "2026-09-04T22:35:59.954Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:35:59.954Z",
+        "date": "2026-09-04",
+        "subscribers": 15000,
+        "joined": 0,
+        "left": 0,
+        "views": 5250,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@tinkoff_journal": {
+    "channelId": "@tinkoff_journal",
+    "username": "tinkoff_journal",
+    "title": "Telegram: Contact @tinkoff_journal",
+    "firstTrackedAt": "2026-09-04T22:36:01.525Z",
+    "lastUpdatedAt": "2026-09-04T22:36:01.525Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:36:01.525Z",
+        "date": "2026-09-04",
+        "subscribers": 15000,
+        "joined": 0,
+        "left": 0,
+        "views": 5250,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@forbesrussia": {
+    "channelId": "@forbesrussia",
+    "username": "forbesrussia",
+    "title": "Forbes Russia",
+    "firstTrackedAt": "2026-09-04T22:36:03.146Z",
+    "lastUpdatedAt": "2026-09-04T22:36:03.146Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:36:03.146Z",
+        "date": "2026-09-04",
+        "subscribers": 235000,
+        "joined": 0,
+        "left": 0,
+        "views": 82250,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@vcnews": {
+    "channelId": "@vcnews",
+    "username": "vcnews",
+    "title": "vc.ru",
+    "firstTrackedAt": "2026-09-04T22:36:04.594Z",
+    "lastUpdatedAt": "2026-09-04T22:36:04.594Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:36:04.594Z",
+        "date": "2026-09-04",
+        "subscribers": 112000,
+        "joined": 0,
+        "left": 0,
+        "views": 39200,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@rusven": {
+    "channelId": "@rusven",
+    "username": "rusven",
+    "title": "Русский венчур",
+    "firstTrackedAt": "2026-09-04T22:36:06.181Z",
+    "lastUpdatedAt": "2026-09-04T22:36:06.181Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:36:06.181Z",
+        "date": "2026-09-04",
+        "subscribers": 24700,
+        "joined": 0,
+        "left": 0,
+        "views": 8645,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@rbc_investing": {
+    "channelId": "@rbc_investing",
+    "username": "rbc_investing",
+    "title": "Станислав Крылов",
+    "firstTrackedAt": "2026-09-04T22:36:07.774Z",
+    "lastUpdatedAt": "2026-09-04T22:36:07.774Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:36:07.774Z",
+        "date": "2026-09-04",
+        "subscribers": 15000,
+        "joined": 0,
+        "left": 0,
+        "views": 5250,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@setka_digital": {
+    "channelId": "@setka_digital",
+    "username": "setka_digital",
+    "title": "Telegram: Contact @setka_digital",
+    "firstTrackedAt": "2026-09-04T22:36:09.375Z",
+    "lastUpdatedAt": "2026-09-04T22:36:09.375Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:36:09.375Z",
+        "date": "2026-09-04",
+        "subscribers": 15000,
+        "joined": 0,
+        "left": 0,
+        "views": 5250,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@artlebedev": {
+    "channelId": "@artlebedev",
+    "username": "artlebedev",
+    "title": "Студия Артемия Лебедева",
+    "firstTrackedAt": "2026-09-04T22:36:10.947Z",
+    "lastUpdatedAt": "2026-09-04T22:36:10.947Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:36:10.947Z",
+        "date": "2026-09-04",
+        "subscribers": 22200,
+        "joined": 0,
+        "left": 0,
+        "views": 7770,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@leprum": {
+    "channelId": "@leprum",
+    "username": "leprum",
+    "title": "Telegram: Contact @leprum",
+    "firstTrackedAt": "2026-09-04T22:36:12.539Z",
+    "lastUpdatedAt": "2026-09-04T22:36:12.539Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:36:12.539Z",
+        "date": "2026-09-04",
+        "subscribers": 15000,
+        "joined": 0,
+        "left": 0,
+        "views": 5250,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@maboratory": {
+    "channelId": "@maboratory",
+    "username": "maboratory",
+    "title": "Research group",
+    "firstTrackedAt": "2026-09-04T22:36:14.151Z",
+    "lastUpdatedAt": "2026-09-04T22:36:14.151Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:36:14.151Z",
+        "date": "2026-09-04",
+        "subscribers": 3000000,
+        "joined": 0,
+        "left": 0,
+        "views": 1050000,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@pikabu": {
+    "channelId": "@pikabu",
+    "username": "pikabu",
+    "title": "Пикабу",
+    "firstTrackedAt": "2026-09-04T22:36:15.855Z",
+    "lastUpdatedAt": "2026-09-04T22:36:15.855Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:36:15.855Z",
+        "date": "2026-09-04",
+        "subscribers": 256000,
+        "joined": 0,
+        "left": 0,
+        "views": 89600,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@kinopoisk": {
+    "channelId": "@kinopoisk",
+    "username": "kinopoisk",
+    "title": "Кинопоиск | Фильмы и сериалы",
+    "firstTrackedAt": "2026-09-04T22:36:17.379Z",
+    "lastUpdatedAt": "2026-09-04T22:36:17.379Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:36:17.379Z",
+        "date": "2026-09-04",
+        "subscribers": 810000,
+        "joined": 0,
+        "left": 0,
+        "views": 283500,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@artscience": {
+    "channelId": "@artscience",
+    "username": "artscience",
+    "title": "Telegram: Contact @artscience",
+    "firstTrackedAt": "2026-09-04T22:36:18.949Z",
+    "lastUpdatedAt": "2026-09-04T22:36:18.949Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:36:18.949Z",
+        "date": "2026-09-04",
+        "subscribers": 15000,
+        "joined": 0,
+        "left": 0,
+        "views": 5250,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  },
+  "@arzamas_mag": {
+    "channelId": "@arzamas_mag",
+    "username": "arzamas_mag",
+    "title": "Telegram: Contact @arzamas_mag",
+    "firstTrackedAt": "2026-09-04T22:36:20.528Z",
+    "lastUpdatedAt": "2026-09-04T22:36:20.528Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:36:20.528Z",
+        "date": "2026-09-04",
+        "subscribers": 15000,
+        "joined": 0,
+        "left": 0,
+        "views": 5250,
+        "forwards": 0,
+        "reactions": 0
+      }
+    ]
+  }
+}

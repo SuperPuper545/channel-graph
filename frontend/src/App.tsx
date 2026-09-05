@@ -93,6 +93,40 @@ export function App() {
   const [isPremiumOpen, setIsPremiumOpen] = useState(false);
   const [isAddChannelOpen, setIsAddChannelOpen] = useState(false);
 
+  // Collapsible Charts state (default collapsed for smoother scrolling)
+  const [chartsExpanded, setChartsExpanded] = useState<{
+    growth: boolean;
+    views: boolean;
+    engagement: boolean;
+    content: boolean;
+  }>({
+    growth: false,
+    views: false,
+    engagement: false,
+    content: false
+  });
+
+  const isAllChartsExpanded = Object.values(chartsExpanded).every(Boolean);
+
+  const handleToggleAllCharts = () => {
+    const nextState = !isAllChartsExpanded;
+    setChartsExpanded({
+      growth: nextState,
+      views: nextState,
+      engagement: nextState,
+      content: nextState
+    });
+    hapticImpact('light');
+  };
+
+  const handleToggleChart = (chartKey: 'growth' | 'views' | 'engagement' | 'content') => {
+    setChartsExpanded(prev => ({
+      ...prev,
+      [chartKey]: !prev[chartKey]
+    }));
+    hapticImpact('light');
+  };
+
   // Lock background scrolling when any modal is open
   const isAnyModalOpen = isExportOpen || isPricingModalOpen || isPremiumOpen || isAddChannelOpen;
   useEffect(() => {
@@ -354,25 +388,50 @@ export function App() {
               />
             </div>
 
-            {/* Charts Grid (4 Interactive Charts in 2x2 Layout on Desktop) */}
+            {/* Section Header & Master Toggle for Interactive Charts */}
+            <div className="flex items-center justify-between px-1 pt-1">
+              <div className="flex items-center gap-2">
+                <h3 className="text-xs font-bold text-tg-hint uppercase tracking-wider">Графики и динамика</h3>
+                <span className="px-1.5 py-0.5 rounded-full bg-tg-secondaryBg border border-tg-border text-[10px] font-bold text-tg-hint">
+                  4
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleToggleAllCharts}
+                className="text-xs font-bold text-blue-500 hover:text-blue-600 active:scale-95 transition-all flex items-center gap-1 py-1 px-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20"
+              >
+                <span>{isAllChartsExpanded ? 'Свернуть все' : 'Развернуть все'}</span>
+              </button>
+            </div>
+
+            {/* Charts Grid (4 Interactive Charts in 2x2 Layout on Desktop, Collapsible for smooth scrolling) */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4">
               <GrowthChart
                 data={analytics.growthTimeline}
                 colorScheme={colorScheme}
+                isExpanded={chartsExpanded.growth}
+                onToggleExpand={() => handleToggleChart('growth')}
               />
               <ViewsChart
                 dailyData={analytics.viewsTimeline}
                 hourlyData={analytics.hourlyViews}
                 colorScheme={colorScheme}
+                isExpanded={chartsExpanded.views}
+                onToggleExpand={() => handleToggleChart('views')}
               />
               <EngagementChart
                 growthData={analytics.growthTimeline}
                 errRate={parseFloat(String(analytics.metrics.err.value).replace('%', '')) || 18.4}
                 colorScheme={colorScheme}
+                isExpanded={chartsExpanded.engagement}
+                onToggleExpand={() => handleToggleChart('engagement')}
               />
               <ContentPerformanceChart
                 baseViews={Number(analytics.metrics.avgReach.value) || 1200}
                 colorScheme={colorScheme}
+                isExpanded={chartsExpanded.content}
+                onToggleExpand={() => handleToggleChart('content')}
               />
             </div>
 

@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { getResolvedDataDir } from './dataStoreUtils.js';
 
 export interface ChannelSnapshot {
   timestamp: string; // ISO string
@@ -22,22 +23,15 @@ export interface ChannelHistoryRecord {
   snapshots: ChannelSnapshot[];
 }
 
-const DATA_DIR = path.resolve(process.cwd(), 'data');
-const HISTORY_FILE = path.join(DATA_DIR, 'channel_history.json');
-
-function ensureDataDir() {
-  if (!fs.existsSync(DATA_DIR)) {
-    try {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
-    } catch {}
-  }
+function getHistoryFilePath(): string {
+  return path.join(getResolvedDataDir(), 'channel_history.json');
 }
 
 export function loadAllChannelHistory(): Record<string, ChannelHistoryRecord> {
-  ensureDataDir();
+  const filePath = getHistoryFilePath();
   try {
-    if (fs.existsSync(HISTORY_FILE)) {
-      const raw = fs.readFileSync(HISTORY_FILE, 'utf-8');
+    if (fs.existsSync(filePath)) {
+      const raw = fs.readFileSync(filePath, 'utf-8');
       return JSON.parse(raw);
     }
   } catch (err) {
@@ -47,9 +41,9 @@ export function loadAllChannelHistory(): Record<string, ChannelHistoryRecord> {
 }
 
 export function saveAllChannelHistory(history: Record<string, ChannelHistoryRecord>) {
-  ensureDataDir();
+  const filePath = getHistoryFilePath();
   try {
-    fs.writeFileSync(HISTORY_FILE, JSON.stringify(history, null, 2), 'utf-8');
+    fs.writeFileSync(filePath, JSON.stringify(history, null, 2), 'utf-8');
   } catch (err) {
     console.error('Error writing channel_history.json:', err);
   }

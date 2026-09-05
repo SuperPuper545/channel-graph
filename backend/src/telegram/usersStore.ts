@@ -1,12 +1,9 @@
 import fs from 'fs';
 import path from 'path';
+import { getResolvedDataDir } from './dataStoreUtils.js';
 
-const DATA_DIR = path.resolve(process.cwd(), 'data');
-const USERS_FILE = path.join(DATA_DIR, 'users.json');
-
-// Ensure data directory exists
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+function getUsersFilePath(): string {
+  return path.join(getResolvedDataDir(), 'users.json');
 }
 
 export interface UserProfile {
@@ -21,9 +18,10 @@ export interface UserProfile {
 }
 
 export function loadUsersStore(): Record<string, UserProfile> {
+  const filePath = getUsersFilePath();
   try {
-    if (fs.existsSync(USERS_FILE)) {
-      const data = fs.readFileSync(USERS_FILE, 'utf-8');
+    if (fs.existsSync(filePath)) {
+      const data = fs.readFileSync(filePath, 'utf-8');
       return JSON.parse(data) || {};
     }
   } catch (err) {
@@ -33,8 +31,9 @@ export function loadUsersStore(): Record<string, UserProfile> {
 }
 
 export function saveUsersStore(store: Record<string, UserProfile>): void {
+  const filePath = getUsersFilePath();
   try {
-    fs.writeFileSync(USERS_FILE, JSON.stringify(store, null, 2), 'utf-8');
+    fs.writeFileSync(filePath, JSON.stringify(store, null, 2), 'utf-8');
   } catch (err) {
     console.error('Error saving users.json:', err);
   }
