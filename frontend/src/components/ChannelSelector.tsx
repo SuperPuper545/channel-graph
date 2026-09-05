@@ -73,7 +73,15 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
     e.preventDefault();
     if (!searchQuery.trim()) return;
 
-    const clean = searchQuery.replace('@', '').replace('https://t.me/', '').trim();
+    const clean = searchQuery
+      .trim()
+      .replace(/^https?:\/\/(t\.me|telegram\.me)\//i, '')
+      .replace(/^@/, '')
+      .replace(/\/.*$/, '')
+      .trim();
+
+    if (!clean) return;
+
     const alreadyExists = viewedChannels.some(c => c.username?.toLowerCase() === clean.toLowerCase() || c.id === clean);
 
     if (!alreadyExists && viewedChannels.length >= maxViewLimit) {

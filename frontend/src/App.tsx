@@ -422,13 +422,19 @@ export function App() {
               />
               <EngagementChart
                 growthData={analytics.growthTimeline}
-                errRate={parseFloat(String(analytics.metrics.err.value).replace('%', '')) || 18.4}
+                errRate={(() => {
+                  const num = parseFloat(String(analytics.metrics.err.value).replace('%', ''));
+                  return !isNaN(num) ? num : 0;
+                })()}
                 colorScheme={colorScheme}
                 isExpanded={chartsExpanded.engagement}
                 onToggleExpand={() => handleToggleChart('engagement')}
               />
               <ContentPerformanceChart
-                baseViews={Number(analytics.metrics.avgReach.value) || 1200}
+                baseViews={(() => {
+                  const num = parseInt(String(analytics.metrics.avgReach.value).replace(/\D/g, ''), 10);
+                  return !isNaN(num) ? num : 0;
+                })()}
                 colorScheme={colorScheme}
                 isExpanded={chartsExpanded.content}
                 onToggleExpand={() => handleToggleChart('content')}

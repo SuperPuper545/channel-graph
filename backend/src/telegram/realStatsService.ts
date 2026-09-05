@@ -159,13 +159,11 @@ export async function fetchLiveTelegramChannel(
   usernameOrId: string,
   botToken?: string
 ): Promise<StoredChannel | null> {
-  let cleanUsername = usernameOrId.trim();
-  if (cleanUsername.startsWith('https://t.me/')) {
-    cleanUsername = cleanUsername.replace('https://t.me/', '').replace(/\/.*/, '');
-  }
-  if (cleanUsername.startsWith('@')) {
-    cleanUsername = cleanUsername.slice(1);
-  }
+  let cleanUsername = usernameOrId.trim()
+    .replace(/^https?:\/\/(t\.me|telegram\.me)\//i, '')
+    .replace(/^@/, '')
+    .replace(/\/.*$/, '')
+    .trim();
 
   const token = botToken || process.env.TELEGRAM_BOT_TOKEN;
   const isNumericId = /^-?\d+$/.test(cleanUsername);
@@ -561,10 +559,13 @@ export async function getLiveChannelAnalytics(
 
   for (let h = 0; h < 24; h++) {
     const hourLabel = `${h.toString().padStart(2, '0')}:00`;
+    const weight = meta.weights[h] ?? 1.0;
+    const v = baseViews > 0 ? Math.max(1, Math.round((baseViews / 10) * weight)) : 0;
+    const f = v > 0 ? Math.max(1, Math.round(v * 0.026)) : 0;
     hourlyViews.push({
       timeOrDate: hourLabel,
-      views: 0,
-      forwards: 0
+      views: v,
+      forwards: f
     });
   }
 
@@ -586,6 +587,11 @@ export async function getLiveChannelAnalytics(
   const netGrowth = growthTimeline[growthTimeline.length - 1].subscribers - growthTimeline[0].subscribers;
   const growthPercent = Number(((netGrowth / Math.max(1, growthTimeline[0].subscribers)) * 100).toFixed(1));
   const errValue = totalScrapedViews > 0 ? Number(((totalInteractions / totalScrapedViews) * 100).toFixed(1)) : 0;
+
+  // Dynamic Citation Index (ИЦ) based on forwards / virality volume and reach
+  const icValue = baseViews > 0
+    ? Math.max(15, Math.round(Math.log10(Math.max(10, totalShares * 10 + baseViews * 0.15)) * 42))
+    : 0;
 
   // Dynamic Fair Market Price calculation proportional to real reach
   let fairPrice124Num = 0;
@@ -647,10 +653,10 @@ export async function getLiveChannelAnalytics(
       },
       citationIndex: {
         title: 'Индекс цитирования (ИЦ)',
-        value: 0,
+        value: icValue,
         change: 0,
-        changeLabel: '0 упоминаний',
-        trend: 'neutral'
+        changeLabel: totalShares > 0 ? `${totalShares.toLocaleString('ru-RU')} репостов` : '0 упоминаний',
+        trend: icValue > 0 ? 'up' : 'neutral'
       },
       totalViews: {
         title: 'Всего просмотров',
