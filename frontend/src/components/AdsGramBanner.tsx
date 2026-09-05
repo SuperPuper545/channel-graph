@@ -31,8 +31,14 @@ export const AdsGramBanner: React.FC<AdsGramBannerProps> = ({
     setIsPlaying(true);
     setAdError(null);
 
-    // If official AdsGram SDK is loaded in Telegram
-    if (typeof window !== 'undefined' && window.Adsgram) {
+    const hasTgInitData = Boolean(
+      typeof window !== 'undefined' && 
+      window.Telegram?.WebApp?.initData && 
+      window.Telegram.WebApp.initData.length > 0
+    );
+
+    // If official AdsGram SDK is loaded and we are inside Telegram Mini App
+    if (typeof window !== 'undefined' && window.Adsgram && hasTgInitData) {
       try {
         const AdController = window.Adsgram.init({
           blockId: REAL_ADSGRAM_BLOCK_ID,
@@ -59,11 +65,11 @@ export const AdsGramBanner: React.FC<AdsGramBannerProps> = ({
       }
     }
 
-    // Fallback timer if AdsGram SDK is not active (e.g. browser desktop preview)
+    // Fallback timer if AdsGram SDK is not active or running in normal browser
     setTimeout(() => {
       setIsPlaying(false);
       onAdCompleted();
-    }, 2500);
+    }, 2000);
   };
 
   return (
