@@ -267,13 +267,15 @@ export function App() {
 
     if (!exists) {
       queryClient.setQueryData<ChannelOverview[]>(['channels', user?.id], (old = []) => [channel, ...old]);
-      try {
-        const savedChannels = await saveUserChannel(channel, user?.id);
-        if (savedChannels && savedChannels.length > 0) {
-          queryClient.setQueryData(['channels', user?.id], savedChannels);
+      if (user?.id && user.id > 1) {
+        try {
+          const savedChannels = await saveUserChannel(channel, user.id);
+          if (savedChannels && savedChannels.length > 0) {
+            queryClient.setQueryData(['channels', user.id], savedChannels);
+          }
+        } catch (err) {
+          console.warn('Failed to persist channel:', err);
         }
-      } catch (err) {
-        console.warn('Failed to persist channel:', err);
       }
     }
   };
