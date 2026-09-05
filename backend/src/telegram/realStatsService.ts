@@ -200,6 +200,7 @@ export async function fetchLiveTelegramChannel(
 
         const category = detectCategory(chat.title || '', chat.username || '', chat.description || '');
         const hasLinkedChat = !!chat.linked_chat_id;
+        const hasReactions = Array.isArray(chat.available_reactions) ? chat.available_reactions.length > 0 : undefined;
 
         const channel: StoredChannel = {
           id: String(chat.id),
@@ -212,6 +213,7 @@ export async function fetchLiveTelegramChannel(
           isAdmin: false,
           isLive: true,
           hasLinkedChat,
+          hasReactions,
           addedAt: new Date().toISOString()
         };
 
@@ -390,15 +392,18 @@ export async function getLiveChannelAnalytics(
           }
         }
 
-        const isDiscussionOpen = channel.hasLinkedChat || (channel.subscribers > 500 && channel.username?.toLowerCase() !== 'durov');
-
-        // 1. Reactions: exact parsed from HTML if present, or standard baseline (4.2% of views)
+        // 1. Reactions:
+        // Use exact parsed reactions from HTML if present (e.g. Durov has 66k+ stars/emojis).
+        // If HTML has no reaction tags, only calculate reactions if channel actually has reactions enabled (not disabled)
         let finalReactions = reactions;
-        if (finalReactions === 0 && viewsCount > 0) {
+        if (finalReactions === 0 && viewsCount > 0 && channel.hasReactions === true) {
           finalReactions = Math.max(1, Math.round(viewsCount * 0.042));
         }
 
-        // 2. Comments: exact parsed from HTML, or if channel has open discussion group, calculate comment rate
+        // 2. Comments:
+        // Use exact parsed comments from HTML if present.
+        // If HTML has no comment tags, only calculate comments if channel has discussion group enabled (hasLinkedChat === true or topor)
+        const isDiscussionOpen = channel.hasLinkedChat === true || (channel.username?.toLowerCase() === 'topor');
         let finalComments = comments;
         if (finalComments === 0 && viewsCount > 0 && isDiscussionOpen) {
           finalComments = Math.max(1, Math.round(viewsCount * 0.0055));
