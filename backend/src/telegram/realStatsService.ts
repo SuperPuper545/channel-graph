@@ -366,11 +366,34 @@ export async function getLiveChannelAnalytics(
           timeStr = !isNaN(d.getTime()) ? d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) : 'Недавно';
         }
 
-        const mult = (parsedPosts.length * 0.02) + 0.08;
-        const forwards = Math.max(0, Math.floor(viewsCount * mult * 0.8));
-        const reactions = Math.max(0, Math.floor(viewsCount * mult * 1.3));
-        const comments = Math.max(0, Math.floor(viewsCount * 0.015));
-        const postErr = Number((((reactions + forwards) / Math.max(1, viewsCount)) * 100).toFixed(1));
+        let reactions = 0;
+        const reactionMatches = [...block.matchAll(/class="tgme_widget_message_reaction_count">([^<]+)<\/span>/gi)];
+        if (reactionMatches.length > 0) {
+          reactionMatches.forEach(m => {
+            const rawR = m[1].trim().replace(/\s/g, '');
+            if (rawR.toLowerCase().endsWith('k')) {
+              reactions += Math.round(parseFloat(rawR) * 1000);
+            } else if (rawR.toLowerCase().endsWith('m')) {
+              reactions += Math.round(parseFloat(rawR) * 1000000);
+            } else {
+              reactions += parseInt(rawR.replace(/\D/g, ''), 10) || 0;
+            }
+          });
+        }
+
+        let comments = 0;
+        const commentMatch = block.match(/class="tgme_widget_message_comment_count">([^<]+)<\/span>/i);
+        if (commentMatch) {
+          const rawC = commentMatch[1].trim().replace(/\s/g, '');
+          if (rawC.toLowerCase().endsWith('k')) {
+            comments = Math.round(parseFloat(rawC) * 1000);
+          } else {
+            comments = parseInt(rawC.replace(/\D/g, ''), 10) || 0;
+          }
+        }
+
+        const forwards = 0;
+        const postErr = viewsCount > 0 ? Number((((reactions + forwards + comments) / viewsCount) * 100).toFixed(1)) : 0;
 
         parsedPosts.push({
           id: parseInt(postSlug.split('/')[1], 10) || (parsedPosts.length + 100),
@@ -380,7 +403,7 @@ export async function getLiveChannelAnalytics(
           forwards,
           reactions,
           comments,
-          err: Math.max(1, postErr),
+          err: Math.max(0, postErr),
           url: `https://t.me/${postSlug}`
         });
       }
@@ -484,99 +507,68 @@ export async function getLiveChannelAnalytics(
     postsByDate.set(post.date, existing);
   });
 
-  // Calculate factual baseline views per post
-  let baseViews = 0;
-  if (parsedPosts.length > 0) {
-    baseViews = Math.round(totalScrapedViews / parsedPosts.length);
-  } else if (subs > 100) {
-    const reachMultiplier = subs < 1000 ? 0.44 : channel.category.includes('Новост') ? 0.40 : 0.35;
-    baseViews = Math.max(1, Math.round(subs * reachMultiplier));
-  }
+  const baseViews = parsedPosts.length > 0 ? Math.round(totalScrapedViews / parsedPosts.length) : 0;
 
   for (let i = Math.min(days, 30); i >= 0; i--) {
     const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
     const dateLabel = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
 
     if (postsByDate.has(dateLabel)) {
-      // Factual real post views on this exact date
       const p = postsByDate.get(dateLabel)!;
       viewsTimeline.push({
         timeOrDate: dateLabel,
         views: p.views,
         forwards: p.forwards
       });
-    } else if (parsedPosts.length > 0 || (channel.isAdmin && subs < 100)) {
-      // On days where NO post was published, views are 0
+    } else {
       viewsTimeline.push({
         timeOrDate: dateLabel,
         views: 0,
         forwards: 0
       });
-    } else {
-      // For large public channels where only aggregate estimate is available
-      const seed = (channel.username.charCodeAt(0) || 50) + i * 13;
-      const variance = ((seed % 30) / 100) + 0.85;
-      const views = Math.max(0, Math.round(baseViews * variance));
-      viewsTimeline.push({
-        timeOrDate: dateLabel,
-        views,
-        forwards: Math.max(0, Math.round(views * 0.065))
-      });
     }
   }
 
-  // Category specific hourly distribution
   const meta = getCategoryHourlyWeights(channel.category);
   const hourlyViews: ViewsPoint[] = [];
 
   for (let h = 0; h < 24; h++) {
     const hourLabel = `${h.toString().padStart(2, '0')}:00`;
-    const v = Math.max(0, Math.round((baseViews / 12) * meta.weights[h]));
     hourlyViews.push({
       timeOrDate: hourLabel,
-      views: v,
-      forwards: Math.max(0, Math.round(v * 0.065))
+      views: 0,
+      forwards: 0
     });
   }
 
-  // Activity breakdown calculation scaled to channel size
-  const totalReactions = parsedPosts.length > 0 
-    ? totalScrapedReactions 
-    : Math.max(subs > 10 ? 1 : 0, Math.round(baseViews * 0.12 * Math.min(days, 30)));
-  const totalShares = parsedPosts.length > 0 
-    ? totalScrapedForwards 
-    : Math.max(0, Math.round(baseViews * 0.05 * Math.min(days, 30)));
-  const totalComments = parsedPosts.length > 0 
-    ? parsedPosts.reduce((acc, p) => acc + p.comments, 0)
-    : Math.max(0, Math.round(baseViews * 0.02 * Math.min(days, 30)));
-  const totalInteractions = Math.max(1, totalReactions + totalShares + totalComments);
+  // Activity breakdown calculation from factual post data
+  const totalReactions = totalScrapedReactions;
+  const totalShares = totalScrapedForwards;
+  const totalComments = parsedPosts.reduce((acc, p) => acc + p.comments, 0);
+  const totalInteractions = totalReactions + totalShares + totalComments;
 
   const activity: ActivityBreakdown = {
     reactions: totalReactions,
     shares: totalShares,
     comments: totalComments,
-    reactionsPercent: Math.round((totalReactions / totalInteractions) * 100) || 80,
-    sharesPercent: Math.round((totalShares / totalInteractions) * 100) || 15,
-    commentsPercent: Math.round((totalComments / totalInteractions) * 100) || 5
+    reactionsPercent: totalInteractions > 0 ? Math.round((totalReactions / totalInteractions) * 100) : 0,
+    sharesPercent: totalInteractions > 0 ? Math.round((totalShares / totalInteractions) * 100) : 0,
+    commentsPercent: totalInteractions > 0 ? Math.round((totalComments / totalInteractions) * 100) : 0
   };
 
   const netGrowth = growthTimeline[growthTimeline.length - 1].subscribers - growthTimeline[0].subscribers;
   const growthPercent = Number(((netGrowth / Math.max(1, growthTimeline[0].subscribers)) * 100).toFixed(1));
-  const errValue = Number(((totalInteractions / Math.max(1, baseViews * Math.min(days, 30))) * 100).toFixed(1));
+  const errValue = totalScrapedViews > 0 ? Number(((totalInteractions / totalScrapedViews) * 100).toFixed(1)) : 0;
 
   // Dynamic Fair Market Price calculation proportional to real reach
   let fairPrice124Num = 0;
-  if (subs < 100) {
-    fairPrice124Num = 150; // Micro-channel base
-  } else if (subs < 500) {
-    fairPrice124Num = 450;
-  } else {
-    fairPrice124Num = Math.max(500, Math.round((baseViews * (meta.cpm / 1000)) / 100) * 100);
+  if (baseViews > 0) {
+    fairPrice124Num = Math.max(150, Math.round((baseViews * (meta.cpm / 1000)) / 100) * 100);
   }
 
   const fairPrice248Num = Math.round(fairPrice124Num * 1.7 / 10) * 10;
   const fairPriceNativeNum = Math.round(fairPrice124Num * 2.5 / 10) * 10;
-  const viralityScoreNum = Math.min(98, Math.max(68, Math.round(errValue * 3.6 + (activity.sharesPercent * 2.4))));
+  const viralityScoreNum = Math.min(98, Math.max(50, Math.round(errValue * 3.6 + (activity.sharesPercent * 2.4))));
 
   const aiInsights: AIInsightsData = {
     category: channel.category,
@@ -585,48 +577,14 @@ export async function getLiveChannelAnalytics(
     audienceType: meta.audience,
     viralityScore: viralityScoreNum,
     viralityGrade: viralityScoreNum >= 85 ? 'Класс A+' : viralityScoreNum >= 75 ? 'Класс A' : 'Класс B+',
-    fairCpmRange: subs < 500 ? '150 – 300 ₽' : `${meta.cpm - 50} – ${meta.cpm + 100} ₽`,
+    fairCpmRange: `${meta.cpm - 50} – ${meta.cpm + 100} ₽`,
     fairPrice124: `${fairPrice124Num.toLocaleString('ru-RU')} ₽`,
     fairPrice248: `${fairPrice248Num.toLocaleString('ru-RU')} ₽`,
     fairPriceNative: `${fairPriceNativeNum.toLocaleString('ru-RU')} ₽`,
     keyGrowthTips: meta.tips
   };
 
-  const topPosts: ChannelPost[] = parsedPosts.length > 0 ? parsedPosts : [
-    {
-      id: 1,
-      title: `⚡ Закрепленная публикация и анонсы канала @${channel.username}`,
-      date: 'Сегодня',
-      views: Math.max(1, Math.floor(baseViews * 1.35)),
-      forwards: Math.max(0, Math.floor(baseViews * 0.14)),
-      reactions: Math.max(0, Math.floor(baseViews * 0.17)),
-      comments: Math.max(0, Math.floor(baseViews * 0.02)),
-      err: Math.max(5, Number((errValue * 1.15).toFixed(1))),
-      url: `https://t.me/${channel.username}`
-    },
-    {
-      id: 2,
-      title: `📊 Анализ вовлеченности аудитории и медиакит канала`,
-      date: 'Вчера',
-      views: Math.max(1, Math.floor(baseViews * 1.18)),
-      forwards: Math.max(0, Math.floor(baseViews * 0.11)),
-      reactions: Math.max(0, Math.floor(baseViews * 0.13)),
-      comments: Math.max(0, Math.floor(baseViews * 0.015)),
-      err: Math.max(5, Number((errValue * 1.05).toFixed(1))),
-      url: `https://t.me/${channel.username}`
-    },
-    {
-      id: 3,
-      title: `🔥 Топ-публикация недели: Эксклюзивные материалы`,
-      date: '3 дня назад',
-      views: Math.max(1, Math.floor(baseViews * 1.48)),
-      forwards: Math.max(0, Math.floor(baseViews * 0.18)),
-      reactions: Math.max(0, Math.floor(baseViews * 0.21)),
-      comments: Math.max(0, Math.floor(baseViews * 0.025)),
-      err: Math.max(6, Number((errValue * 1.3).toFixed(1))),
-      url: `https://t.me/${channel.username}`
-    }
-  ];
+  const topPosts: ChannelPost[] = parsedPosts;
 
   return {
     overview: channel,
@@ -642,9 +600,9 @@ export async function getLiveChannelAnalytics(
       err: {
         title: 'ERR (Вовлеченность)',
         value: `${errValue}%`,
-        change: 3.8,
-        changeLabel: '+3.8% выше рынка',
-        trend: 'up'
+        change: 0,
+        changeLabel: totalScrapedViews > 0 ? 'По реальным постам' : 'Без данных',
+        trend: 'neutral'
       },
       growth: {
         title: 'Прирост аудитории',
@@ -656,23 +614,23 @@ export async function getLiveChannelAnalytics(
       avgReach: {
         title: 'Средний охват поста',
         value: baseViews.toLocaleString('ru-RU'),
-        change: 5.4,
-        changeLabel: `${Math.round((baseViews / Math.max(1, channel.subscribers)) * 100)}% от аудитории`,
-        trend: 'up'
+        change: 0,
+        changeLabel: baseViews > 0 ? `${Math.round((baseViews / Math.max(1, channel.subscribers)) * 100)}% от аудитории` : '0% от аудитории',
+        trend: 'neutral'
       },
       citationIndex: {
         title: 'Индекс цитирования (ИЦ)',
-        value: Math.max(channel.subscribers > 50 ? 1 : 0, Math.floor(channel.subscribers * 0.0035)),
-        change: channel.subscribers > 500 ? 8.0 : 0,
-        changeLabel: channel.subscribers > 500 ? '+14 упоминаний' : '0 упоминаний',
-        trend: channel.subscribers > 500 ? 'up' : 'neutral'
+        value: 0,
+        change: 0,
+        changeLabel: '0 упоминаний',
+        trend: 'neutral'
       },
       totalViews: {
         title: 'Всего просмотров',
-        value: (baseViews * Math.min(days, 30)).toLocaleString('ru-RU'),
-        change: 7.2,
+        value: totalScrapedViews.toLocaleString('ru-RU'),
+        change: 0,
         changeLabel: 'за период',
-        trend: 'up'
+        trend: 'neutral'
       }
     },
     growthTimeline,

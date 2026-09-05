@@ -23,7 +23,12 @@ export const TopPosts: React.FC<TopPostsProps> = ({ posts, onOpenLink }) => {
       </div>
 
       <div className="space-y-2.5">
-        {posts.map((post, idx) => (
+        {posts.length === 0 ? (
+          <div className="p-4 rounded-xl bg-tg-secondaryBg border border-tg-border text-center text-xs text-tg-hint">
+            Публикации пока не зафиксированы. Они появятся по мере выхода новых постов.
+          </div>
+        ) : (
+          posts.map((post, idx) => (
           <div
             key={post.id}
             className="p-3 rounded-xl bg-tg-secondaryBg border border-tg-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-blue-500/40 transition-colors"
@@ -76,7 +81,8 @@ export const TopPosts: React.FC<TopPostsProps> = ({ posts, onOpenLink }) => {
               </div>
             </div>
           </div>
-        ))}
+        ))
+      )}
       </div>
     </div>
   );
