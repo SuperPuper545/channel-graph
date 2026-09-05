@@ -114,6 +114,17 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
     onOpenAddChannel();
   };
 
+  const getAvatarSrc = (c: { avatar?: string; username?: string; title?: string }) => {
+    if (c.avatar && !c.avatar.includes('api.telegram.org/file/bot') && c.avatar.startsWith('http')) {
+      return c.avatar;
+    }
+    const clean = (c.username || '').replace('@', '').trim();
+    if (clean && !clean.startsWith('-')) {
+      return `https://t.me/i/userpic/320/${clean}.jpg`;
+    }
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(c.title || c.username || 'TG')}&background=2563eb&color=fff&size=200&bold=true`;
+  };
+
   return (
     <div className="relative">
       {/* Current Active Channel Card */}
@@ -124,8 +135,11 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="relative flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12">
             <img
-              src={selectedChannel.avatar}
+              src={getAvatarSrc(selectedChannel)}
               alt={selectedChannel.title}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedChannel.title || 'TG')}&background=2563eb&color=fff&size=200&bold=true`;
+              }}
               className="w-11 h-11 sm:w-12 sm:h-12 aspect-square rounded-2xl object-cover border border-tg-border flex-shrink-0"
             />
             {selectedChannel.isVerified && (
@@ -282,8 +296,11 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
                           className="flex items-center gap-2.5 min-w-0 flex-1 text-left"
                         >
                           <img
-                            src={channel.avatar}
+                            src={getAvatarSrc(channel)}
                             alt={channel.title}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(channel.title || 'TG')}&background=2563eb&color=fff&size=200&bold=true`;
+                            }}
                             className="w-10 h-10 aspect-square rounded-xl object-cover flex-shrink-0 border border-tg-border"
                           />
                           <div className="min-w-0 flex-1">
@@ -345,8 +362,11 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
                         className="flex items-center gap-2.5 min-w-0 flex-1 text-left"
                       >
                         <img
-                          src={channel.avatar}
+                          src={getAvatarSrc(channel)}
                           alt={channel.title}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(channel.title || 'TG')}&background=2563eb&color=fff&size=200&bold=true`;
+                          }}
                           className="w-10 h-10 aspect-square rounded-xl object-cover flex-shrink-0 border border-tg-border"
                         />
                         <div className="min-w-0 flex-1">

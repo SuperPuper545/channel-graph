@@ -1,16 +1,29 @@
 [
   {
+    "id": "@durov",
+    "title": "Pavel Durov",
+    "username": "durov",
+    "avatar": "https://t.me/i/userpic/320/durov.jpg",
+    "subscribers": 10887121,
+    "category": "Новости и Медиа",
+    "isVerified": true,
+    "isAdmin": false,
+    "isLive": true,
+    "ownerId": 1405573756,
+    "addedAt": "2026-09-05T00:00:00.000Z"
+  },
+  {
     "id": "@custom_test",
     "title": "Tests",
     "username": "custom_test",
-    "avatar": "",
+    "avatar": "https://t.me/i/userpic/320/custom_test.jpg",
     "subscribers": 12500,
     "category": "Новости и Медиа",
     "isVerified": false,
     "isAdmin": false,
     "isLive": true,
     "ownerId": 1405573756,
-    "addedAt": "2026-09-02T15:50:23.637Z"
+    "addedAt": "2026-09-05T00:00:00.000Z"
   },
   {
     "id": "@-1002885280199",
@@ -23,19 +36,6 @@
     "isAdmin": false,
     "isLive": true,
     "ownerId": 1405573756,
-    "addedAt": "2026-09-02T15:48:49.323Z"
-  },
-  {
-    "id": "@durov",
-    "title": "Pavel Durov",
-    "username": "durov",
-    "avatar": "https://cdn4.telesco.pe/file/hrb-X5GoGeHO4NkBTys6sUeLKd51j6RY656XjWfNMMBWLmiRPEbQfW-gDGjlAlvlQnKOH8YzLIjnKoxKcseY0r4qmBlENWuz2DsL1dgDfoODjOM5ddfCkQ9yi5Kt_LSyiEXNInqSG5tJVckA-7ARuuQuRvbAl-AnbTJ8kc47BTqPh07vCO9XVOkl8wuJvN_Hzkk8Irkm7239xk2y7RL8-pMGxr__7YGeVnR2iz3P132A7Vy5L2Cnhx69KmQkU8PhRrYzEJXhke50Zwqy3ydAcy1nLt38NvXO8VBS_Po1QkdSpgtc-kj_AmKFkrIW66hpVJl3TVBgAZTWpV5pndxERA.jpg",
-    "subscribers": 10926791,
-    "category": "Новости и Медиа",
-    "isVerified": true,
-    "isAdmin": false,
-    "isLive": true,
-    "ownerId": 1405573756,
-    "addedAt": "2026-09-02T15:45:00.000Z"
+    "addedAt": "2026-09-05T00:00:00.000Z"
   }
 ]

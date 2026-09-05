@@ -194,18 +194,9 @@ export async function fetchLiveTelegramChannel(
           // fallback
         }
 
-        let avatar = `https://api.dicebear.com/7.x/identicon/svg?seed=${chat.username || chat.title || 'tg'}`;
-        if (chat.photo?.big_file_id) {
-          try {
-            const fileRes = await axios.get(`https://api.telegram.org/bot${token}/getFile`, {
-              params: { file_id: chat.photo.big_file_id },
-              timeout: 4000
-            });
-            if (fileRes.data?.ok && fileRes.data.result.file_path) {
-              avatar = `https://api.telegram.org/file/bot${token}/${fileRes.data.result.file_path}`;
-            }
-          } catch {}
-        }
+        let avatar = cleanUsername && !cleanUsername.startsWith('-')
+          ? `https://t.me/i/userpic/320/${cleanUsername}.jpg`
+          : `https://ui-avatars.com/api/?name=${encodeURIComponent(chat.title || cleanUsername || 'tg')}&background=3b82f6&color=fff&size=200&bold=true`;
 
         const category = detectCategory(chat.title || '', chat.username || '', chat.description || '');
 
