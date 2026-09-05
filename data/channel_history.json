@@ -1,0 +1,22 @@
+{
+  "@durov": {
+    "channelId": "@durov",
+    "username": "durov",
+    "title": "Pavel Durov",
+    "firstTrackedAt": "2026-09-04T22:31:50.394Z",
+    "lastUpdatedAt": "2026-09-04T22:31:50.394Z",
+    "snapshots": [
+      {
+        "timestamp": "2026-09-04T22:31:50.394Z",
+        "date": "2026-09-04",
+        "subscribers": 15000,
+        "joined": 0,
+        "left": 0,
+        "views": 11430000,
+        "forwards": 1203200,
+        "reactions": 1955200,
+        "latestPostId": 546
+      }
+    ]
+  }
+}

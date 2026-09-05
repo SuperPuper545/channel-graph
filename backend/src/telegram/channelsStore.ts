@@ -55,7 +55,7 @@ export function loadStoredChannels(userId?: number): StoredChannel[] {
   const all = readAllChannels();
 
   if (userId) {
-    const userChannels = all.filter(c => !c.ownerId || c.ownerId === userId);
+    const userChannels = all.filter(c => c.ownerId === userId);
     
     // Check if Durov is in userChannels
     const hasDurov = userChannels.some(c => c.id === '@durov' || c.username?.toLowerCase() === 'durov');
