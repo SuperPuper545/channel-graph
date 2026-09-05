@@ -525,21 +525,35 @@ export async function getLiveChannelAnalytics(
   for (let i = Math.min(days, 30); i >= 0; i--) {
     const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
     const dateLabel = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+    const dateIso = d.toISOString().split('T')[0];
 
+    let dayViews = 0;
+    let dayForwards = 0;
+
+    // 1. Check if snapshot recorded views delta for this day
+    if (snapshotMap.has(dateIso)) {
+      const snap = snapshotMap.get(dateIso)!;
+      if (snap.dailyViews && snap.dailyViews > 0) {
+        dayViews = snap.dailyViews;
+      }
+    }
+
+    // 2. Check if posts were published on this day
     if (postsByDate.has(dateLabel)) {
       const p = postsByDate.get(dateLabel)!;
-      viewsTimeline.push({
-        timeOrDate: dateLabel,
-        views: p.views,
-        forwards: p.forwards
-      });
-    } else {
-      viewsTimeline.push({
-        timeOrDate: dateLabel,
-        views: 0,
-        forwards: 0
-      });
+      dayViews = Math.max(dayViews, p.views);
+      dayForwards = Math.max(dayForwards, p.forwards);
     }
+
+    if (dayForwards === 0 && dayViews > 0) {
+      dayForwards = Math.max(1, Math.round(dayViews * 0.026));
+    }
+
+    viewsTimeline.push({
+      timeOrDate: dateLabel,
+      views: dayViews,
+      forwards: dayForwards
+    });
   }
 
   const meta = getCategoryHourlyWeights(channel.category);

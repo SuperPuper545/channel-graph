@@ -9,6 +9,7 @@ export interface ChannelSnapshot {
   joined: number;
   left: number;
   views: number;
+  dailyViews?: number;
   forwards: number;
   reactions: number;
   latestPostId?: number;
@@ -99,10 +100,16 @@ export function recordSnapshot(
 
   let joined = 0;
   let left = 0;
+  let dailyViews = 0;
   if (prevSnap) {
     const diff = subscribers - prevSnap.subscribers;
     if (diff > 0) joined = diff;
     else if (diff < 0) left = Math.abs(diff);
+
+    if (views > 0 && prevSnap.views > 0) {
+      const diffViews = views - prevSnap.views;
+      if (diffViews > 0) dailyViews = diffViews;
+    }
   }
 
   const snap: ChannelSnapshot = {
@@ -112,6 +119,7 @@ export function recordSnapshot(
     joined,
     left,
     views,
+    dailyViews,
     forwards,
     reactions,
     latestPostId
