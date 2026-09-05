@@ -104,6 +104,7 @@ export interface ChannelOverview {
   category: string;
   isVerified: boolean;
   isAdmin: boolean;
+  hasLinkedChat?: boolean;
 }
 
 export interface MetricCardData {

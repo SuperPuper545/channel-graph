@@ -54,15 +54,15 @@ export const TopPosts: React.FC<TopPostsProps> = ({ posts, onOpenLink }) => {
                 </span>
                 <span className="flex items-center gap-1" title="Репосты">
                   <Share2 className="w-3 h-3 text-indigo-500" />
-                  {post.forwards}
+                  {post.forwards.toLocaleString('ru-RU')}
                 </span>
                 <span className="flex items-center gap-1" title="Реакции">
                   <Heart className="w-3 h-3 text-pink-500" />
-                  {post.reactions}
+                  {post.reactions.toLocaleString('ru-RU')}
                 </span>
                 <span className="flex items-center gap-1" title="Комментарии">
                   <MessageSquare className="w-3 h-3 text-emerald-500" />
-                  {post.comments}
+                  {post.comments.toLocaleString('ru-RU')}
                 </span>
               </div>
 
