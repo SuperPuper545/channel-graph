@@ -23,10 +23,18 @@ async function getBase64Avatar(url: string): Promise<string> {
   }
 }
 
+export interface PdfExportResult {
+  success: boolean;
+  base64?: string;
+  fileName: string;
+}
+
 export async function exportChannelPdf(
   analytics: ChannelAnalytics,
   settings?: MediaKitSettings
-): Promise<boolean> {
+): Promise<PdfExportResult> {
+  const fileName = `MediaKit_${analytics.overview.username}.pdf`;
+
   // Convert avatar to base64 so html2canvas never drops it due to CORS
   const base64Avatar = await getBase64Avatar(analytics.overview.avatar);
 
@@ -290,11 +298,17 @@ export async function exportChannelPdf(
       pdf.link(fX, fY, fW, fH, { url: 'https://t.me/StatVisualBot' });
     }
 
-    pdf.save(`MediaKit_${analytics.overview.username}.pdf`);
-    return true;
+    try {
+      pdf.save(fileName);
+    } catch {
+      // Ignored in mobile WebView
+    }
+
+    const base64 = pdf.output('datauristring');
+    return { success: true, base64, fileName };
   } catch (error) {
     console.error('Failed to export PDF:', error);
-    return false;
+    return { success: false, fileName };
   } finally {
     if (document.body.contains(container)) {
       document.body.removeChild(container);

@@ -75,6 +75,9 @@ declare global {
         openTelegramLink: (url: string) => void;
         openLink: (url: string) => void;
         openInvoice: (url: string, callback?: (status: 'paid' | 'cancelled' | 'failed' | 'pending') => void) => void;
+        showAlert?: (message: string, callback?: () => void) => void;
+        showPopup?: (params: { title?: string; message: string; buttons?: Array<{ id?: string; type?: string; text?: string }> }, callback?: (buttonId: string) => void) => void;
+        downloadFile?: (params: { url: string; file_name: string }, callback?: (accepted: boolean) => void) => void;
         setHeaderColor: (color: string) => void;
         setBackgroundColor: (color: string) => void;
         enableClosingConfirmation: () => void;

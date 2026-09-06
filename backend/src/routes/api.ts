@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import axios from 'axios';
-import { Bot } from 'grammy';
+import { Bot, InputFile } from 'grammy';
 import { validateTelegramInitData } from '../auth/validateInitData.js';
 import { loadStoredChannels, deleteStoredChannel, addOrUpdateChannel } from '../telegram/channelsStore.js';
 import { getLiveChannelAnalytics, fetchLiveTelegramChannel } from '../telegram/realStatsService.js';
@@ -202,6 +202,48 @@ export function createApiRouter(botToken: string, botInstance?: Bot): Router {
     } catch (err) {
       console.error(`Error fetching analytics for ${channelId}:`, err);
       return res.status(500).json({ error: 'Failed to compute channel analytics' });
+    }
+  });
+
+  // Send exported PDF or PNG directly to user's Telegram chat via Bot
+  router.post('/export/send-to-chat', async (req: Request, res: Response) => {
+    const { userId, type, fileBase64, fileName, channelTitle, username } = req.body;
+
+    if (!fileBase64 || !fileName) {
+      return res.status(400).json({ error: 'Missing fileBase64 or fileName parameter' });
+    }
+
+    const targetUserId = userId ? Number(userId) : 0;
+    if (!targetUserId || targetUserId <= 1) {
+      // Guest / browser session without real Telegram ID
+      return res.json({ success: false, reason: 'guest_user' });
+    }
+
+    if (!botInstance) {
+      return res.status(500).json({ error: 'Telegram Bot instance is not available' });
+    }
+
+    try {
+      const cleanBase64 = fileBase64.replace(/^data:[^;]+;base64,/, '');
+      const buffer = Buffer.from(cleanBase64, 'base64');
+      const inputFile = new InputFile(buffer, fileName);
+
+      const typeLabel = type === 'pdf' ? 'PDF-медиакит' : 'PNG-инфографика';
+      const caption = `📊 <b>${channelTitle || 'Медиакит'}</b>${username ? ` (@${username})` : ''}\n\n` +
+        `✅ Ваш <b>${typeLabel}</b> успешно сформирован!\n` +
+        `Файл готов для пересылки рекламодателям или сохранения в галерею/файлы.\n\n` +
+        `🤖 <i>Channel Graph • @StatVisualBot</i>`;
+
+      await botInstance.api.sendDocument(targetUserId, inputFile, {
+        caption,
+        parse_mode: 'HTML'
+      });
+
+      console.log(`📤 [Export] Sent ${typeLabel} (${fileName}) to user ${targetUserId}`);
+      return res.json({ success: true, sentToChat: true });
+    } catch (err: any) {
+      console.error(`❌ [Export Error] Failed to send file to user ${targetUserId}:`, err.message);
+      return res.status(500).json({ error: err.message || 'Failed to send file to Telegram chat' });
     }
   });
 

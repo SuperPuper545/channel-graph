@@ -12,6 +12,7 @@ interface ExportModalProps {
   analytics: ChannelAnalytics;
   settings: MediaKitSettings;
   isPro: boolean;
+  userId?: number;
   onOpenPremium: () => void;
   onOpenEditPricing: () => void;
   onHapticSuccess: () => void;
@@ -23,6 +24,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   analytics,
   settings,
   isPro,
+  userId,
   onOpenPremium,
   onOpenEditPricing,
   onHapticSuccess
@@ -34,8 +36,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   if (!isOpen) return null;
 
   const triggerExport = async (type: 'pdf' | 'png') => {
-    if (!isPro && type === 'pdf') {
-      setPendingAction('pdf');
+    if (!isPro) {
+      setPendingAction(type);
       setShowAd(true);
       return;
     }
@@ -48,19 +50,49 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     setShowAd(false);
 
     try {
+      let result: { success: boolean; base64?: string; fileName: string };
       if (type === 'pdf') {
-        await exportChannelPdf(analytics, settings);
+        result = await exportChannelPdf(analytics, settings);
       } else {
-        await exportChannelPng(analytics, settings);
+        result = await exportChannelPng(analytics, settings);
       }
 
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 }
-      });
-      onHapticSuccess();
-      onClose();
+      if (result.success) {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+        onHapticSuccess();
+
+        // If inside Telegram with valid user ID, deliver file directly to Telegram chat via Bot
+        if (userId && userId > 1 && result.base64) {
+          try {
+            await fetch('/api/export/send-to-chat', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                userId,
+                type,
+                fileBase64: result.base64,
+                fileName: result.fileName,
+                channelTitle: analytics.overview.title,
+                username: analytics.overview.username
+              })
+            });
+
+            if (typeof window !== 'undefined' && window.Telegram?.WebApp?.showAlert) {
+              window.Telegram.WebApp.showAlert(
+                `✅ ${type === 'pdf' ? 'PDF-медиакит' : 'PNG-инфографика'} успешно отправлен вам в чат с ботом @StatVisualBot!`
+              );
+            }
+          } catch (chatErr) {
+            console.warn('Could not send file to TG chat:', chatErr);
+          }
+        }
+
+        onClose();
+      }
     } catch (err) {
       console.error('Export failed:', err);
     } finally {
@@ -126,7 +158,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             <button
               onClick={() => triggerExport('pdf')}
               disabled={isExporting}
-              className="w-full p-3 rounded-2xl bg-tg-secondaryBg border border-tg-border hover:border-blue-500/50 flex items-center justify-between gap-3 text-left transition-all active:scale-98 group"
+              className="w-full p-3 rounded-2xl bg-tg-secondaryBg border border-tg-border hover:border-blue-500/50 flex items-center justify-between gap-3 text-left transition-all active:scale-98 group disabled:opacity-50"
             >
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-blue-500/10 text-blue-500 group-hover:bg-blue-600 group-hover:text-white transition-colors flex-shrink-0">
@@ -136,18 +168,22 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                   <div className="flex items-center gap-1.5">
                     <h4 className="font-bold text-xs text-tg-text">PDF Медиакит для рекламодателей</h4>
                     <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.2 bg-blue-500/10 text-blue-500 rounded">
-                      Pro формат
+                      A4 Документ
                     </span>
                   </div>
                   <p className="text-[10.5px] text-tg-hint">
-                    Векторный A4 документ с кликабельными ссылками на заказ рекламы
+                    Векторный документ с кликабельными ссылками на заказ рекламы
                   </p>
                 </div>
               </div>
 
-              {!isPro && (
+              {!isPro ? (
                 <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-500 flex-shrink-0">
                   Free (Ads)
+                </span>
+              ) : (
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 flex-shrink-0">
+                  PRO
                 </span>
               )}
             </button>
@@ -156,24 +192,43 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             <button
               onClick={() => triggerExport('png')}
               disabled={isExporting}
-              className="w-full p-3 rounded-2xl bg-tg-secondaryBg border border-tg-border hover:border-indigo-500/50 flex items-center justify-between gap-3 text-left transition-all active:scale-98 group"
+              className="w-full p-3 rounded-2xl bg-tg-secondaryBg border border-tg-border hover:border-indigo-500/50 flex items-center justify-between gap-3 text-left transition-all active:scale-98 group disabled:opacity-50"
             >
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500 group-hover:bg-indigo-600 group-hover:text-white transition-colors flex-shrink-0">
                   <ImageIcon className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-xs text-tg-text">PNG Инфографика (1:1 HD)</h4>
+                  <div className="flex items-center gap-1.5">
+                    <h4 className="font-bold text-xs text-tg-text">PNG Инфографика (1:1 HD)</h4>
+                    <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.2 bg-indigo-500/10 text-indigo-500 rounded">
+                      1280x1280
+                    </span>
+                  </div>
                   <p className="text-[10.5px] text-tg-hint">
                     Компактная квадратная карточка для отправки в Telegram-чаты
                   </p>
                 </div>
               </div>
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 flex-shrink-0">
-                1280x1280
-              </span>
+
+              {!isPro ? (
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-500 flex-shrink-0">
+                  Free (Ads)
+                </span>
+              ) : (
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 flex-shrink-0">
+                  PRO
+                </span>
+              )}
             </button>
           </div>
+
+          {isExporting && (
+            <div className="p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-center space-y-1 animate-pulse">
+              <div className="text-xs font-bold text-blue-500">Генерируем медиакит...</div>
+              <div className="text-[10.5px] text-tg-hint">Файл скачивается и отправляется в ваш чат с ботом</div>
+            </div>
+          )}
 
           {!isPro ? (
             <div className="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-2">

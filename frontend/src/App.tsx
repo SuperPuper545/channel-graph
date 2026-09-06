@@ -530,6 +530,7 @@ export function App() {
             analytics={analytics}
             settings={mediaKitSettings}
             isPro={isPro}
+            userId={user?.id}
             onOpenPremium={() => setIsPremiumOpen(true)}
             onOpenEditPricing={() => setIsPricingModalOpen(true)}
             onHapticSuccess={() => hapticNotification('success')}

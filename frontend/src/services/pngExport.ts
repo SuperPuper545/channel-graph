@@ -22,6 +22,12 @@ async function getBase64Avatar(url: string): Promise<string> {
   }
 }
 
+export interface PngExportResult {
+  success: boolean;
+  base64?: string;
+  fileName: string;
+}
+
 /**
  * Generates a sleek, compact Social Infographic Card (1080x1080 square format)
  * Perfect for sending directly in Telegram chats and channels without awkward scrolling!
@@ -29,7 +35,8 @@ async function getBase64Avatar(url: string): Promise<string> {
 export async function exportChannelPng(
   analytics: ChannelAnalytics,
   settings?: MediaKitSettings
-): Promise<boolean> {
+): Promise<PngExportResult> {
+  const fileName = `ChannelGraph_${analytics.overview.username}_card.png`;
   const base64Avatar = await getBase64Avatar(analytics.overview.avatar);
   const contact = (settings?.contactUsername || analytics.overview.username).replace('@', '');
   const price124 = settings?.price1_24 || '4 500 ₽';
@@ -161,16 +168,22 @@ export async function exportChannelPng(
     });
 
     const image = canvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    link.href = image;
-    link.download = `ChannelGraph_${analytics.overview.username}_card.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    return true;
+    
+    try {
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch {
+      // Ignored in mobile WebView
+    }
+
+    return { success: true, base64: image, fileName };
   } catch (error) {
     console.error('Failed to export PNG:', error);
-    return false;
+    return { success: false, fileName };
   } finally {
     if (document.body.contains(container)) {
       document.body.removeChild(container);
